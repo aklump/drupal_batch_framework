@@ -17,13 +17,7 @@ It works with all Drupal versions >= 6
           "type": "github",
           "url": "https://github.com/aklump/drupal_batch_framework"
         }
-      ],
-       "extra": {
-        "installer-paths": {
-            "web/components/custom/{$name}": [
-                "type:drupal-custom-component"
-            ]
-        }
+      ]
     }
     ```
 
