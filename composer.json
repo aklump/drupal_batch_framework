@@ -1,5 +1,6 @@
 {
     "name": "aklump/drupal-batch-framework",
+    "type": "drupal-custom-component",
     "autoload": {
         "psr-4": {
             "AKlump\\Drupal\\BatchFramework\\": "src"
