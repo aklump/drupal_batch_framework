@@ -1,0 +1,21 @@
+{
+    "name": "aklump/drupal-batch-framework",
+    "autoload": {
+        "psr-4": {
+            "AKlump\\Drupal\\BatchFramework\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AKlump\\Drupal\\BatchFramework\\": "examples",
+            "AKlump\\Drupal\\BatchFramework\\Tests\\Unit\\": "./tests_unit"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "psr/log": "^1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    }
+}
