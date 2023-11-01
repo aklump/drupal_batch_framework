@@ -36,7 +36,63 @@ one or more operations.
 1. Add the operation(s) to your batch class; see
    _examples/BatchDefinitions/FooBatch.php_
 
-## Start a Batch (of Operations) by Submitting a Form
+## File Structure
+
+Suggested class structure within _my_module/_
+
+```php
+.
+└── src
+    └── Batch
+        ├── BatchDefinitions
+        │   └── FooBatch.php
+        └── Operations
+            ├── BarOperation.php
+            └── BazOperation.php
+```
+
+## Batch Definition Example
+
+You may or many not need to pass anything to the class, the constructor is
+optional, yet this example shows how it can be done.
+
+```php
+<?php
+
+namespace Drupal\my_module\Batch\BatchDefinitions;
+
+final class FooBatch extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase {
+
+  use \AKlump\Drupal\BatchFramework\Traits\GetIdByClassnameTrait;
+
+  private \Drupal\Core\Session\AccountInterface $account;
+
+  public function __construct(\Drupal\Core\Session\AccountInterface $account) {
+    $this->account = $account;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getOperations(): array {
+    $operations = [
+      // This operation takes a couple of arguments, unlike the first.  One is
+      // calculated at runtime and the other is a property of the batch.
+      new \AKlump\Drupal\BatchFramework\Operations\BarOperation(date_create('now'), $this->account),
+      // Another operation to be processed by this batch; it's unlimited.
+      new \AKlump\Drupal\BatchFramework\Operations\BazOperation(),
+    ];
+
+    return $operations;
+  }
+}
+```
+
+## Operation Example
+
+See _examples/Operations/BarOperation_
+
+## Start the Batch by Submitting a Form
 
 ```php
 function some_form_submit_handler(array &$form, FormStateInterface $form_state) {
@@ -62,12 +118,12 @@ outside of a batch. It allows you to trigger a single operation that will run
 for a set duration. The second two arguments may be omitted if unnecessary.
 
 ```php
-class FooController extends ControllerBase {
+class BarController extends ControllerBase {
 
-  public function convert(NodeInterface $node) {
+  public function process(AccountInterface $account) {
     $max_execution_in_seconds = 60;
     Operator::handleOperation(
-      new ConvertUserCollectionsOperation([$node->id()]),
+      new BarOperation(date_create(), $account),
       $max_execution_in_seconds,
       \Drupal::logger('conversions'),
       new DrupalMessengerAdapter(),

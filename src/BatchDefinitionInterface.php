@@ -4,7 +4,7 @@ namespace AKlump\Drupal\BatchFramework;
 
 use Psr\Log\LoggerInterface;
 
-interface BatchDefinitionInterface {
+interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInterface {
 
   /**
    * @return string
@@ -54,30 +54,6 @@ interface BatchDefinitionInterface {
   public function process(string $redirect = NULL, $redirect_callback = NULL);
 
   /**
-   * @param \AKlump\Drupal\BatchFramework\MessengerInterface $messenger
-   *
-   * @return void
-   */
-  public function setMessenger(MessengerInterface $messenger): void;
-
-  /**
-   * @return \AKlump\Drupal\BatchFramework\MessengerInterface
-   */
-  public function getMessenger(): MessengerInterface;
-
-  /**
-   * @param \Psr\Log\LoggerInterface $logger
-   *
-   * @return void
-   */
-  public function setLogger(LoggerInterface $logger): void;
-
-  /**
-   * @return \Psr\Log\LoggerInterface
-   */
-  public function getLogger(): LoggerInterface;
-
-  /**
    * Set the title for the progress page.
    *
    * @param $title
@@ -106,4 +82,18 @@ interface BatchDefinitionInterface {
    * @return void
    */
   public function setProgressMessage($progress_message): void;
+
+  /**
+   * @param \Psr\Log\LoggerInterface $logger
+   *
+   * @return void
+   */
+  public function setLogger(LoggerInterface $logger): void;
+
+  /**
+   * @param \AKlump\Drupal\BatchFramework\MessengerInterface $messenger
+   *
+   * @return void
+   */
+  public function setMessenger(MessengerInterface $messenger): void;
 }

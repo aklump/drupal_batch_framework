@@ -4,10 +4,8 @@ namespace AKlump\Drupal\BatchFramework;
 
 /**
  * Batch operation classes may use this interface.
- *
- * @see \Drupal\ova_storage_migrate\Migrate\MigrateUserOperation
  */
-interface OperationInterface {
+interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
 
   /**
    * @return string
@@ -44,8 +42,6 @@ interface OperationInterface {
    *
    * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
    *   For any reason that indicates initialization failed.
-   *
-   * @see \Drupal\ova_storage_migrate\Batch\OperationInterface::onFail()
    */
   public function initialize(): void;
 
@@ -53,16 +49,9 @@ interface OperationInterface {
    * Indicate how much processing remains.
    *
    * @return float
-   *   A number from 0 to 1 indicating how close the process is to completion.
-   *   1 means the process is complete.
-   *
-   * If the operation should be skipped due to previous batch failure, you
-   * may include this code in the start of this method of your class.
-   * @code
-   * if (\AKlump\Drupal\BatchFramework\Operator::hasBatchFailed($batch_context)) {
-   *   return 1;
-   * }
-   * @endcode
+   *   From 0 to 1 indicating how close the process is to completion, where 1 is
+   *   100% complete.
+   * @see \AKlump\Drupal\BatchFramework\Helpers\GetProgressRatio
    */
   public function getProgressRatio(): float;
 

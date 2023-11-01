@@ -4,6 +4,8 @@ namespace AKlump\Drupal\BatchFramework\Operations;
 
 class BarOperation implements \AKlump\Drupal\BatchFramework\OperationInterface {
 
+  use \AKlump\Drupal\BatchFramework\Traits\GetIdByClassnameTrait;
+
   public function __construct(\DateTimeInterface $date, \Drupal\Core\Session\AccountInterface $account) {
     $this->date = $date;
     $this->account = $account;
