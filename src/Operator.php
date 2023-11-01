@@ -107,13 +107,6 @@ class Operator {
     return isset($batch_context['results']['batch_failed']) && TRUE === $batch_context['results']['batch_failed'];
   }
 
-  /**
-   * Detect if a batch has failed.
-   *
-   * @param array $batch_context
-   *
-   * @return \AKlump\Drupal\BatchFramework\BatchFailedException|NULL
-   */
   public static function getBatchFailedException(array $batch_context): ?BatchFailedException {
     return $batch_context['results']['batch_failed_exception'] ?? NULL;
   }
