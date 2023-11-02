@@ -42,4 +42,13 @@ abstract class OperationBase implements OperationInterface {
   public function finish(): void {
 
   }
+
+  public function setUserMessage(string $message): void {
+    $this->context['message'] = $message;
+  }
+
+  public function clearUserMessage(): void {
+    $this->context['message'] = '';
+  }
+
 }

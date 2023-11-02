@@ -65,19 +65,23 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * exceptions that are thrown will be added to to the watchdog table
    * automatically.
    *
-   * For user messages to the UI, use a MessengerInterface instance.
+   * Use ::setUserMessage() or ::clearUserMessage for messaging.
    *
-   * @return string
-   *   A message to echo to the UI or ''.
-   *
+   * @return void.
    * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
    *   To indicate the operation failed and no more operations should run.
    *   ::finish on the active operation will NOT be called.
    * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
    *   To indicate the operation failed, but the batch should continue.
    *   ::finish() on the active operation will still be called.
+   * @see \AKlump\Drupal\BatchFramework\OperationInterface::setUserMessage();
+   * @see \AKlump\Drupal\BatchFramework\OperationInterface::clearUserMessage();
    */
-  public function process(): string;
+  public function process(): void;
+
+  public function setUserMessage(string $message): void;
+
+  public function clearUserMessage(): void;
 
   /**
    * Run quick tasks after processing is completed.
