@@ -71,12 +71,12 @@ class Operator {
       } while (time() < $end && $batch_context['finished'] < 1);
     }
     catch (BatchFailedException $exception) {
-      self::setBatchHasFailed($batch_context, $exception);
+      self::setBatchHasFailed($op, $batch_context, $exception);
       try {
         $op->finish();
       }
       catch (BatchFailedException $exception) {
-        self::setBatchHasFailed($batch_context, $exception);
+        self::setBatchHasFailed($op, $batch_context, $exception);
       }
       $batch_context['finished'] = 1;
     }
@@ -90,10 +90,10 @@ class Operator {
     $batch_context['results']['batch_failed_exceptions'] = [];
   }
 
-  public static function setBatchHasFailed(array &$batch_context, BatchFailedException $exception) {
+  public static function setBatchHasFailed(OperationInterface $op, array &$batch_context, BatchFailedException $exception) {
     $batch_context['results']['batch_failed'] = TRUE;
     $batch_context['results']['batch_failed_exceptions'][] = $exception;
-    watchdog_exception('batch', $exception);
+    watchdog_exception($op->getId(), $exception);
   }
 
   /**
