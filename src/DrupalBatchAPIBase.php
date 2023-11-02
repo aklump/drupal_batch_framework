@@ -2,7 +2,10 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use AKlump\Drupal\BatchFramework\Helpers\LegacyDrupalLoggerAdapter;
+use AKlump\Drupal\BatchFramework\Helpers\LegacyDrupalMessengerAdapter;
 use Drupal;
+use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Url;
 use Psr\Log\LoggerInterface;
 use AKlump\Drupal\BatchFramework\Helpers\DrupalMessengerAdapter;
@@ -37,7 +40,15 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    */
   public function getMessenger(): MessengerInterface {
     if (!isset($this->messenger)) {
-      $this->messenger = new DrupalMessengerAdapter();
+      if (class_exists(Messenger::class)) {
+        $this->messenger = new DrupalMessengerAdapter();
+      }
+      elseif (function_exists('drupal_set_message')) {
+        $this->messenger = new LegacyDrupalMessengerAdapter();
+      }
+      else {
+        throw new \RuntimeException(sprintf('Cannot find a suitable class implementing %s.', MessengerInterface::class));
+      }
     }
 
     return $this->messenger;
@@ -102,7 +113,12 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
       if ($this->op) {
         $channel .= '.' . $this->op->getId();
       }
-      $this->logger = Drupal::service('logger.factory')->get($channel);
+      if (class_exists(Drupal::class)) {
+        $this->logger = Drupal::service('logger.factory')->get($channel);
+      }
+      else {
+        $this->logger = new LegacyDrupalLoggerAdapter($channel);
+      }
     }
 
     return $this->logger;
