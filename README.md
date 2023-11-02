@@ -1,6 +1,6 @@
 # Drupal Batch Framework (A Drupal Component)
 
-[Read more about Drupal Components.](https://www.drupal.org/docs/core-modules-and-themes/basic-structure-of-drupal#s-drupal-components
+[Read more about Drupal Components.](https://www.drupal.org/docs/core-modules-and-themes/basic-structure-of-drupal#s-drupal-components)
 
 It works with all Drupal versions >= 6
 
