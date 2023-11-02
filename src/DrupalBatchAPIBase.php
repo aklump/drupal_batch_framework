@@ -24,7 +24,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
 
   protected ?MessengerInterface $messenger = NULL;
 
-  protected ?Url $batchProcessingPageUrl = NULL;
+  protected ?string $batchProcessingPageUrl = NULL;
 
   private ?OperationInterface $op = NULL;
 
@@ -71,6 +71,9 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * @see \batch_process
    */
   public function setBatchProcessingPage($url): void {
+    if ($url instanceof Url) {
+      $url = $url->toString();
+    }
     $this->batchProcessingPageUrl = $url;
   }
 
@@ -94,7 +97,26 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
     }, $this->getOperations());
     batch_set($this->batch);
 
+    if (function_exists('drupal_goto')) {
+      $this->handleLegacyDrupalBatchProcessArgs($redirect, $redirect_callback);
+    }
+
     return batch_process($redirect, $this->batchProcessingPageUrl, $redirect_callback);
+  }
+
+  private function handleLegacyDrupalBatchProcessArgs(&$redirect, &$redirect_callback) {
+    $reflect = new \ReflectionFunction('\batch_process');
+    foreach ($reflect->getParameters() as $key => $param) {
+      if (0 === $key) {
+        $redirect = $redirect ?? $param->getDefaultValue();
+      }
+      if (1 === $key) {
+        $this->batchProcessingPageUrl = $this->batchProcessingPageUrl ?? $param->getDefaultValue();
+      }
+      if (2 === $key) {
+        $redirect_callback = $redirect_callback ?? $param->getDefaultValue();
+      }
+    }
   }
 
   /**
