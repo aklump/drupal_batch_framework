@@ -133,3 +133,55 @@ class BarController extends ControllerBase {
   }
 }
 ```
+
+## Handling Errors
+
+### Batch Failures
+
+* Each operation may elect to be skipped or not, when that batch has failed by implementing `\OperationInterface::skipOnBatchFailure`.
+* If an operation wants to mark the batch failed it should throw `\AKlump\Drupal\BatchFramework\BatchFailedException`
+* Any other uncaught exceptions will make their way to Drupal, so be careful about that. It's usually not pretty for the user.
+* When an operation throws such exception, it's `\AKlump\Drupal\BatchFramework\OperationInterface::finish` method will be called. See the method for more info.
+* The `\AKlump\Drupal\BatchFramework\OperationInterface::finish` may also throw such exception.
+* See `\AKlump\Drupal\BatchFramework\Operator::handleOperation` which handles the exception for more info.
+
+### Other Failures
+
+* Operations having errors that do not constitute a batch failure should log them using `::getLogger` and handle the situation.
+
+### UX Best Practices
+
+You should have a final operation in your batch that will handle a batch failure by providing user feedback. Here's an example. Be sure to return `FALSE` for `\OperationInterface::skipOnBatchFailure` for that final operation so it will run.
+
+```php
+<?php
+class HandleFailure extends \AKlump\Drupal\BatchFramework\OperationBase {
+
+  public function skipOnBatchFailure(): bool {
+    return FALSE;
+  }
+
+  public function initialize(): void {
+    $this->sb['failures'] = $this->getBatchFailures();
+    $this->sb['total'] = count($this->sb['failures'] ?? []);
+  }
+
+  public function isInitialized(): bool {
+    return isset($this->sb['failures']);
+  }
+
+  public function getProgressRatio(): float {
+    return (new \AKlump\Drupal\BatchFramework\Helpers\GetProgressRatio())($this->sb['total'], count($this->sb['failures']));
+  }
+
+  public function process(): void {
+    foreach ($this->sb['failures'] as $failure) {
+    
+      // In reality you would probably not pass the exception message to the user, but clean it up in some way.
+      $this->getMessenger()
+        ->addMessage($failure->getMessage(), \AKlump\Drupal\BatchFramework\MessengerInterface::TYPE_ERROR);
+    }
+    unset($this->sb['failures']);
+  }
+}
+```

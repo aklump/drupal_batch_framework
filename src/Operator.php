@@ -87,12 +87,12 @@ class Operator {
       return;
     }
     $batch_context['results']['batch_failed'] = FALSE;
-    $batch_context['results']['batch_failed_exception'] = NULL;
+    $batch_context['results']['batch_failed_exceptions'] = [];
   }
 
   public static function setBatchHasFailed(array &$batch_context, BatchFailedException $exception) {
     $batch_context['results']['batch_failed'] = TRUE;
-    $batch_context['results']['batch_failed_exception'] = $exception;
+    $batch_context['results']['batch_failed_exceptions'][] = $exception;
     watchdog_exception('batch', $exception);
   }
 
@@ -108,7 +108,7 @@ class Operator {
   }
 
   public static function getBatchFailedException(array $batch_context): ?BatchFailedException {
-    return $batch_context['results']['batch_failed_exception'] ?? NULL;
+    return $batch_context['results']['batch_failed_exceptions'] ?? [];
   }
 
 }

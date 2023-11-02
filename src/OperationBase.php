@@ -37,6 +37,20 @@ abstract class OperationBase implements OperationInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function skipOnBatchFailure(): bool {
+    return TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getBatchFailures(): array {
+    return $this->context['results']['batch_failed_exceptions'] ?? [];
+  }
+
+  /**
    * @inheritDoc
    */
   public function finish(): void {

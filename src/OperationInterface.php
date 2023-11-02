@@ -29,6 +29,14 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
   public function skipOnBatchFailure(): bool;
 
   /**
+   * Get batch failures.
+   *
+   * @return \AKlump\Drupal\BatchFramework\BatchFailedException[]
+   *   Contains any errors to this point across all operations in the batch.
+   */
+  public function getBatchFailures(): array;
+
+  /**
    * Has the operation been initialized yet.
    *
    * @return bool
