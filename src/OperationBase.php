@@ -57,8 +57,14 @@ abstract class OperationBase implements OperationInterface {
 
   }
 
-  public function setUserMessage(string $message): void {
-    $this->context['message'] = $message;
+  public function setProgressUpdateMessage(string $message, array $context = []): void {
+    if (function_exists('t')) {
+      $this->context['message'] = t($message, $context);
+
+      return;
+    }
+    // TODO Support Drupal 8 better.
+    $this->context['message'] = sprintf($message, $context);
   }
 
   public function clearUserMessage(): void {

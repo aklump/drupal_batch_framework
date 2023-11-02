@@ -73,7 +73,7 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * exceptions that are thrown will be added to to the watchdog table
    * automatically.
    *
-   * Use ::setUserMessage() or ::clearUserMessage for messaging.
+   * Use ::setProgressUpdateMessage() or ::clearUserMessage for messaging.
    *
    * @return void.
    * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
@@ -82,12 +82,12 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
    *   To indicate the operation failed, but the batch should continue.
    *   ::finish() on the active operation will still be called.
-   * @see \AKlump\Drupal\BatchFramework\OperationInterface::setUserMessage();
+   * @see \AKlump\Drupal\BatchFramework\OperationInterface::setProgressUpdateMessage();
    * @see \AKlump\Drupal\BatchFramework\OperationInterface::clearUserMessage();
    */
   public function process(): void;
 
-  public function setUserMessage(string $message): void;
+  public function setProgressUpdateMessage(string $message, array $context = []): void;
 
   public function clearUserMessage(): void;
 
