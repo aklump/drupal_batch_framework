@@ -1,10 +1,8 @@
 # Drupal Batch Framework (A Drupal Component)
 
-[Read more about Drupal Components.](https://www.drupal.org/docs/core-modules-and-themes/basic-structure-of-drupal#s-drupal-components)
-
-It works with all Drupal versions >= 6
-
-[Drupal 7 Batch API](https://www.drupal.org/docs/7/api/batch-api)
+* [What is a Drupal Components?](https://www.drupal.org/docs/core-modules-and-themes/basic-structure-of-drupal#s-drupal-components)
+* Common interface for all Drupal versions >= 6
+* [Drupal.org Batch API Docs](https://www.drupal.org/docs/7/api/batch-api)
 
 ## Installation
 
@@ -29,12 +27,12 @@ You will use this framework to create batches of operations. A batch contains
 one or more operations.
 
 1. Create a batch class by
-   extending `\AKlump\Drupal\BatchFramework\BatchDefinitionBase` or
+   extending `\AKlump\Drupal\BatchFramework\DrupalBatchAPIBase` or
    implementing `\AKlump\Drupal\BatchFramework\BatchDefinitionInterface`.
-1. Create one or more operations by
+2. Create one or more operations by extending `\AKlump\Drupal\BatchFramework\OperationBase` or
    implementing `\AKlump\Drupal\BatchFramework\OperationInterface`.
-1. Add the operation(s) to your batch class; see
-   _examples/BatchDefinitions/FooBatch.php_
+3. Add the operation(s) to your batch class; see below.
+4. Create a form to trigger the batch.
 
 ## File Structure
 
@@ -90,35 +88,55 @@ final class FooBatch extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase {
 
 ## Operation Example
 
-See _examples/Operations/BarOperation_
-
-## Sharing Data Across Operations
-
-`$this->shared` Should be used to shared data across operations. See `\AKlump\Drupal\BatchFramework\OperationBase::setBatchContext` for more info.
-
-### Operation A
-
-Pass a value by setting in your first operation.
-
 ```php
-public function process(): void {
-  $this->shared['path'] = '/foo/bar/baz.html'
+<?php
+
+namespace AKlump\Drupal\BatchFramework\Operations;
+
+class BarOperation extends \AKlump\Drupal\BatchFramework\OperationBase {
+
+  use \AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
+
+  public function __construct(\DateTimeInterface $date, \Drupal\Core\Session\AccountInterface $account) {
+    $this->date = $date;
+    $this->account = $account;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function isInitialized(): bool {
+    return isset($this->sb['items']);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function initialize(): void {
+    $this->sb['items'] = [10, 20, 30];
+    $this->sb['total'] = count($this->sb['items']);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getProgressRatio(): float {
+    return (new \AKlump\Drupal\BatchFramework\Helpers\GetProgressRatio())($this->sb['total'], $this->sb['items']);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function process(): void {
+    $item = array_shift($this->sb['items']);
+    
+    // TODO Do something with the item.
+    
+    $this->getLogger()->info("The item value is @value", ['@value' => $item]);
+  }
+
 }
 ```
-
-### Operation B
-
-Pull the value into the operation sandbox from the shared array.
-
-```php
-public function initialize(): void {
-  $this->sb['path'] = $this->shared['path'];
-}
-```
-
-## Operation Dependencies
-
-You can ensure that operation A is run before operation B by implementing `\AKlump\Drupal\BatchFramework\OperationInterface::getDependencies`. This is generally necessary if you are sharing data across operations.
 
 ## Start the Batch by Submitting a Form
 
@@ -162,13 +180,13 @@ class BarController extends ControllerBase {
 }
 ```
 
-## Handling Errors
+## How to Handle Errors
 
 ### Batch Failures
 
 * Each operation may elect to be skipped or not, when that batch has failed by implementing `\OperationInterface::skipOnBatchFailure`.
 * If an operation wants to mark the batch failed it should throw `\AKlump\Drupal\BatchFramework\BatchFailedException`
-* Any other uncaught exceptions will make their way to Drupal, so be careful about that. It's usually not pretty for the user.
+* **Any other uncaught exceptions will make their way to Drupal, so be careful about that.** It's usually not pretty for the user.
 * When an operation throws such exception, it's `\AKlump\Drupal\BatchFramework\OperationInterface::finish` method will be called. See the method for more info.
 * The `\AKlump\Drupal\BatchFramework\OperationInterface::finish` may also throw such exception.
 * See `\AKlump\Drupal\BatchFramework\Operator::handleOperation` which handles the exception for more info.
@@ -177,9 +195,37 @@ class BarController extends ControllerBase {
 
 * Operations having errors that do not constitute a batch failure should log them using `::getLogger` and handle the situation.
 
+## How to Share Data Between Operations
+
+`$this->shared` should be used to shared data. See `\AKlump\Drupal\BatchFramework\OperationBase::setBatchContext` for more info.
+
+### Operation A
+
+Pass a value by setting the value in your first operation.
+
+```php
+public function process(): void {
+  $this->shared['path'] = '/foo/bar/baz.html'
+}
+```
+
+### Operation B
+
+Pull the value into the operation sandbox from the shared array.
+
+```php
+public function initialize(): void {
+  $this->sb['path'] = $this->shared['path'];
+}
+```
+
+## You Should Declare Operation Dependencies
+
+You can ensure that operation A is run before operation B by implementing `\AKlump\Drupal\BatchFramework\OperationInterface::getDependencies`. This is generally necessary if you are sharing data across operations.
+
 ### UX Best Practices
 
-You should have a final operation in your batch that will handle a batch failure by providing user feedback. Here's an example. Be sure to return `FALSE` for `\OperationInterface::skipOnBatchFailure` for that final operation so it will run.
+You should have a final operation in your batch that will handle a batch failure by providing user feedback. Here's an example. Be sure to return `FALSE` for `\OperationInterface::skipOnBatchFailure` for that final operation so it will not be skipped.
 
 ```php
 <?php
