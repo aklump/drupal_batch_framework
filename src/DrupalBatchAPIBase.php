@@ -95,6 +95,8 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
         ],
       ];
     }, $this->getOperations());
+
+    $this->batch['finished'] = [$this, 'onBatchFinished'];
     batch_set($this->batch);
 
     if (function_exists('drupal_goto')) {
@@ -165,6 +167,31 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    */
   public function setProgressMessage($progress_message): void {
     $this->batch['progress_message'] = $progress_message;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onBatchFinished(bool $batch_status, array $batch_data): void {
+    $elapsed = time() - $batch_data['start'];
+    $elapsed = "$elapsed seconds";
+
+    // This will remove the operation from the logger channel.
+    $this->logger = NULL;
+    $this->op = NULL;
+
+    if ($batch_status) {
+      $this->getLogger()->info("All batch operations completed in @time.", [
+        '@batch' => $this->getLabel(),
+        '@time' => $elapsed,
+      ]);
+    }
+    else {
+      $this->getLogger()->error("Batch failed (@time elapsed).", [
+        '@batch' => $this->getLabel(),
+        '@time' => $elapsed,
+      ]);
+    }
   }
 
 }

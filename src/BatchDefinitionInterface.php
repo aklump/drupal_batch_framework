@@ -54,6 +54,14 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
   public function process(string $redirect = NULL, $redirect_callback = NULL);
 
   /**
+   * @param bool $batch_status
+   * @param array $batch_data
+   *
+   * @return void
+   */
+  public function onBatchFinished(bool $batch_status, array $batch_data): void;
+
+  /**
    * Set the title for the progress page.
    *
    * @param $title

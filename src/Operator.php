@@ -89,9 +89,10 @@ class Operator {
   }
 
   protected static function initializeBatchContext(array &$batch_context) {
-    if (isset($batch_context['results']['operations_finished'])) {
+    if (isset($batch_context['results']['start'])) {
       return;
     }
+    $batch_context['results']['start'] = time();
     $batch_context['results']['operations_finished'] = [];
     $batch_context['results']['batch_failed'] = FALSE;
     $batch_context['results']['batch_failed_exceptions'] = [];
