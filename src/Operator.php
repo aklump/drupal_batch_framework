@@ -44,7 +44,7 @@ class Operator {
     // app/web/core/includes/batch.inc:295
     array &$batch_context = []
   ) {
-    self::initializeBatchFailedContext($batch_context);
+    self::initializeBatchContext($batch_context);
     $batch_context['logger'] = $logger;
     $batch_context['messenger'] = $messenger;
     $op->setBatchContext($batch_context);
@@ -54,6 +54,11 @@ class Operator {
       return;
     }
     try {
+      $unmet_dependencies = array_diff($op->getDependencies(), $batch_context['results']['operations_finished']);
+      if ($unmet_dependencies) {
+        throw new UnmetDependencyException($op, $unmet_dependencies);
+      }
+
       if (!$op->isInitialized()) {
         $op->initialize();
       }
@@ -67,6 +72,7 @@ class Operator {
         $batch_context['finished'] = $progress = $op->getProgressRatio();
         if (floatval(1) === $progress) {
           $op->finish();
+          $batch_context['results']['operations_finished'][] = get_class($op);
         }
       } while (time() < $end && $batch_context['finished'] < 1);
     }
@@ -82,10 +88,11 @@ class Operator {
     }
   }
 
-  protected static function initializeBatchFailedContext(array &$batch_context) {
-    if (isset($batch_context['results']['batch_failed'])) {
+  protected static function initializeBatchContext(array &$batch_context) {
+    if (isset($batch_context['results']['operations_finished'])) {
       return;
     }
+    $batch_context['results']['operations_finished'] = [];
     $batch_context['results']['batch_failed'] = FALSE;
     $batch_context['results']['batch_failed_exceptions'] = [];
   }

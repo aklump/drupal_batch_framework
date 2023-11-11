@@ -14,6 +14,21 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
   public function getId(): string;
 
   /**
+   * Get operation dependencies
+   *
+   * If this operation must be run AFTER another, you must declare the other as
+   * a dependency.  If this operation runs before any of it's dependencies, a
+   * \AKlump\Drupal\BatchFramework\MissingDependencyException will be thrown.
+   *
+   * @return array
+   *   Operation classnames that are required to run before this one.
+   *
+   * @throws \AKlump\Drupal\BatchFramework\UnmetDependencyException
+   *   If run before all dependencies have finished.
+   */
+  public function getDependencies(): array;
+
+  /**
    * Set the batch context.
    *
    * @param array &$batch_context

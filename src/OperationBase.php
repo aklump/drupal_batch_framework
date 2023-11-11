@@ -13,6 +13,11 @@ abstract class OperationBase implements OperationInterface {
 
   protected array $sb = [];
 
+  public function getDependencies(): array {
+    return [];
+  }
+
+
   /**
    * @inheritDoc
    */
