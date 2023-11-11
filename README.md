@@ -209,7 +209,7 @@ class HandleFailure extends \AKlump\Drupal\BatchFramework\OperationBase {
       $this->getMessenger()
         ->addMessage($failure->getMessage(), \AKlump\Drupal\BatchFramework\MessengerInterface::TYPE_ERROR);
     }
-    unset($this->sb['failures']);
+    $this->sb['failures'] = [];
   }
 }
 ```
