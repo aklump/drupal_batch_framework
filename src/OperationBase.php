@@ -2,12 +2,12 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
-use AKlump\Drupal\BatchFramework\Traits\GetIdByClassnameTrait;
+use AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
 use Psr\Log\LoggerInterface;
 
 abstract class OperationBase implements OperationInterface {
 
-  use GetIdByClassnameTrait;
+  use GetLabelByClassnameTrait;
 
   protected array $context = [];
 

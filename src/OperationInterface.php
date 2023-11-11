@@ -11,7 +11,7 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * @return string
    *   A unique string to identify this, such as for log entries.
    */
-  public function getId(): string;
+  public function getLabel(): string;
 
   /**
    * Get operation dependencies

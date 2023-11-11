@@ -63,7 +63,7 @@ namespace Drupal\my_module\Batch\BatchDefinitions;
 
 final class FooBatch extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase {
 
-  use \AKlump\Drupal\BatchFramework\Traits\GetIdByClassnameTrait;
+  use \AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
 
   private \Drupal\Core\Session\AccountInterface $account;
 
@@ -176,7 +176,7 @@ class HandleFailure extends \AKlump\Drupal\BatchFramework\OperationBase {
 
   public function process(): void {
     foreach ($this->sb['failures'] as $failure) {
-    
+
       // In reality you would probably not pass the exception message to the user, but clean it up in some way.
       $this->getMessenger()
         ->addMessage($failure->getMessage(), \AKlump\Drupal\BatchFramework\MessengerInterface::TYPE_ERROR);

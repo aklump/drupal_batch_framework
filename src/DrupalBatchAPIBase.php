@@ -131,9 +131,9 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    */
   public function getLogger(): LoggerInterface {
     if (!$this->logger) {
-      $channel = $this->getId();
+      $channel = $this->getLabel();
       if ($this->op) {
-        $channel .= '.' . $this->op->getId();
+        $channel .= '.' . $this->op->getLabel();
       }
       if (class_exists(Drupal::class)) {
         $this->logger = Drupal::service('logger.factory')->get($channel);

@@ -10,7 +10,7 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
    * @return string
    *   A unique string to identify this, such as for log entries.
    */
-  public function getId(): string;
+  public function getLabel(): string;
 
   /**
    * Get the operations that make up this batch.

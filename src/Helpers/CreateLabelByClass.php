@@ -2,7 +2,7 @@
 
 namespace AKlump\Drupal\BatchFramework\Helpers;
 
-class CreateIdByClass {
+class CreateLabelByClass {
 
   public function __invoke(object $object): string {
     $name = (new \ReflectionClass($object))->getShortName();

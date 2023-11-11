@@ -100,7 +100,7 @@ class Operator {
   public static function setBatchHasFailed(OperationInterface $op, array &$batch_context, BatchFailedException $exception) {
     $batch_context['results']['batch_failed'] = TRUE;
     $batch_context['results']['batch_failed_exceptions'][] = $exception;
-    watchdog_exception($op->getId(), $exception);
+    watchdog_exception($op->getLabel(), $exception);
   }
 
   /**
