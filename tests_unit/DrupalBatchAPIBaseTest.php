@@ -5,29 +5,45 @@ namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalMessengerAdapter;
+use AKlump\Drupal\BatchFramework\BatchFailedException;
 use AKlump\Drupal\BatchFramework\DrupalBatchAPIBase;
+use AKlump\Drupal\BatchFramework\DrupalMode;
 use AKlump\Drupal\BatchFramework\MessengerInterface;
+use AKlump\Drupal\BatchFramework\OperationInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
  * @covers \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase
  * @uses   \AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter
+ * @uses   \AKlump\Drupal\BatchFramework\DrupalMode::get()
+ * @uses   \AKlump\Drupal\BatchFramework\DrupalMode::set()
+ * @uses   \AKlump\Drupal\BatchFramework\DrupalMode::isModern()
  */
 class DrupalBatchAPIBaseTest extends TestCase {
 
-  public function testOnBatchFinishedWithFailCallsLoggerError() {
+  public function testFinishWithFailCallsLoggerForBatchAndForOpErrors() {
     $logger = $this->createMock(LoggerInterface::class);
-    $logger->expects($this->exactly(1))->method('error');
+    $logger->expects($this->exactly(2))->method('error');
 
-    $batch = $this->createPartialMock(Batch_ModernDrupal::class, ['getLogger']);
+    $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
+      'getLogger',
+      'onBatchFinished',
+    ]);
     $batch->method('getLogger')->willReturn($logger);
 
-    $batch_data = [];
-    $batch->onBatchFinished(FALSE, $batch_data);
+    $batch_data = [
+      'batch_failed_exceptions' => [
+        [
+          $this->createMock(OperationInterface::class),
+          new BatchFailedException(),
+        ],
+      ],
+    ];
+    $batch->finish(FALSE, $batch_data, []);
   }
 
-  public function testOnBatchFinishedWithSuccessCallsLoggerInfo() {
+  public function testFinishWithSuccessCallsLoggerInfo() {
     $logger = $this->createMock(LoggerInterface::class);
     $logger->expects($this->exactly(1))->method('info');
 
@@ -35,10 +51,53 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $batch->method('getLogger')->willReturn($logger);
 
     $batch_data = [];
-    $batch->onBatchFinished(TRUE, $batch_data);
+    $batch->finish(TRUE, $batch_data, []);
   }
 
-  public function testOnBatchFinishedCalculatesElapsedTime() {
+  public function dataFortestOnBatchFinishedReceivesCorrectStatusProvider() {
+    $tests = [];
+    $tests[] = [
+      TRUE,
+      [],
+    ];
+    $tests[] = [
+      FALSE,
+      [
+        [
+          $this->createMock(OperationInterface::class),
+          new BatchFailedException(),
+        ],
+      ],
+    ];
+
+    return $tests;
+  }
+
+  /**
+   * @dataProvider dataFortestOnBatchFinishedReceivesCorrectStatusProvider
+   */
+  public function testOnBatchFinishedReceivesCorrectStatus(bool $expected, array $exception_data) {
+    $batch_data = [
+      'batch_failed_exceptions' => $exception_data,
+    ];
+
+    $logger = $this->createMock(LoggerInterface::class);
+    $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
+      'getLogger',
+      'onBatchFinished',
+    ]);
+    $batch->method('getLogger')->willReturn($logger);
+    $batch->method('onBatchFinished')
+      ->willReturnCallback(function () use (&$on_batch_finish_args) {
+        $on_batch_finish_args = func_get_args();
+      });
+    $batch->finish(!$expected, $batch_data, []);
+
+    $this->assertSame($expected, $on_batch_finish_args[0]);
+  }
+
+
+  public function testOnBatchFinishedReceivesElapsedTime() {
     $expected_min_duration = 120;
 
     $batch_data = [
@@ -46,15 +105,23 @@ class DrupalBatchAPIBaseTest extends TestCase {
     ];
 
     $logger = $this->createMock(LoggerInterface::class);
-    $batch = $this->createPartialMock(Batch_ModernDrupal::class, ['getLogger']);
+    $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
+      'getLogger',
+      'onBatchFinished',
+    ]);
     $batch->method('getLogger')->willReturn($logger);
+    $batch->method('onBatchFinished')
+      ->willReturnCallback(function () use (&$elapsed) {
+        $elapsed = func_get_args()[1]['elapsed'];
+      });
+    $batch->finish(TRUE, $batch_data, []);
 
-    $batch_data = $batch->onBatchFinished(TRUE, $batch_data);
-    $this->assertGreaterThanOrEqual($expected_min_duration, $batch_data['elapsed']);
+    $this->assertGreaterThanOrEqual($expected_min_duration, $elapsed);
   }
 
   public function testAutoDetectCanSniffLegacyDrupal() {
-    $this->assertSame(DrupalBatchAPIBase::LEGACY, (new Batch_AutoDetectDrupal())->getMode());
+    $this->assertSame(DrupalMode::LEGACY, (new Batch_AutoDetectDrupal())->getDrupalMode()
+      ->get());
   }
 
   public function testSetTitle() {
@@ -125,8 +192,8 @@ class_alias(Url::class, 'Drupal\Core\Url');
 
 class Batch_ModernDrupal extends DrupalBatchAPIBase {
 
-  public function getMode(): string {
-    return static::MODERN;
+  public function getDrupalMode(): DrupalMode {
+    return (new DrupalMode())->set(DrupalMode::MODERN);
   }
 
   public function getLabel(): string {
@@ -141,8 +208,8 @@ class Batch_ModernDrupal extends DrupalBatchAPIBase {
 
 class Batch_LegacyDrupal extends DrupalBatchAPIBase {
 
-  public function getMode(): string {
-    return static::LEGACY;
+  public function getDrupalMode(): DrupalMode {
+    return (new DrupalMode())->set(DrupalMode::LEGACY);
   }
 
   public function getLabel(): string {

@@ -29,7 +29,7 @@ one or more operations.
 1. Create a batch class by
    extending `\AKlump\Drupal\BatchFramework\DrupalBatchAPIBase` or
    implementing `\AKlump\Drupal\BatchFramework\BatchDefinitionInterface`.
-2. Create one or more operations by extending `\AKlump\Drupal\BatchFramework\OperationBase` or
+2. Create one or more operations by extending `\AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase` or
    implementing `\AKlump\Drupal\BatchFramework\OperationInterface`.
 3. Add the operation(s) to your batch class; see below.
 4. Create a form to trigger the batch.
@@ -93,7 +93,7 @@ final class FooBatch extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase {
 
 namespace AKlump\Drupal\BatchFramework\Operations;
 
-class BarOperation extends \AKlump\Drupal\BatchFramework\OperationBase {
+class BarOperation extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase {
 
   use \AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
 
@@ -224,7 +224,7 @@ class BarController extends ControllerBase {
 
 ## How to Share Data Between Operations
 
-`$this->shared` should be used to shared data. See `\AKlump\Drupal\BatchFramework\OperationBase::setBatchContext` for more info.
+`$this->shared` should be used to shared data. See `\AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase::setBatchContext` for more info.
 
 ### Operation A
 
@@ -256,7 +256,7 @@ You should have a final operation in your batch that will handle a batch failure
 
 ```php
 <?php
-class HandleFailure extends \AKlump\Drupal\BatchFramework\OperationBase {
+class HandleFailure extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase {
 
   public function skipOnBatchFailure(): bool {
     return FALSE;

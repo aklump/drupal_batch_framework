@@ -4,12 +4,12 @@ namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\BatchFailedException;
-use AKlump\Drupal\BatchFramework\OperationBase;
+use AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * @covers \AKlump\Drupal\BatchFramework\OperationBase
+ * @covers \AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase
  */
 class OperationBaseTest extends TestCase {
 
@@ -58,7 +58,7 @@ class OperationBaseTest extends TestCase {
   }
 }
 
-class Operation extends OperationBase {
+class Operation extends DrupalBatchAPIOperationBase {
 
   public function isInitialized(): bool {
     // TODO: Implement isInitialized() method.

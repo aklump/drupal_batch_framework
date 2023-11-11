@@ -6,7 +6,7 @@ use AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
 use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use Psr\Log\LoggerInterface;
 
-abstract class OperationBase implements OperationInterface {
+abstract class DrupalBatchAPIOperationBase implements OperationInterface {
 
   use GetLabelByClassnameTrait;
   use HasDrupalModeTrait;
@@ -78,12 +78,12 @@ abstract class OperationBase implements OperationInterface {
   }
 
   public function setCurrentActivityMessage(string $message, array $context = []): void {
-    // TODO Refactor using the batch mode.
-    if (function_exists('t')) {
-      $message = t($message, $context);
+    if ($this->drupalMode->isModern()) {
+      // TODO Fix this for D8+
+      $message = sprintf($message, $context);
     }
     else {
-      $message = sprintf($message, $context);
+      $message = t($message, $context);
     }
 
     $this->context['results']['current_activity_message'] = $message;

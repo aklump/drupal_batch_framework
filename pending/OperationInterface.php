@@ -116,14 +116,6 @@ interface OperationInterface {
    * @return float
    *   A number from 0 to 1 indicating how close the process is to completion.
    *   1 means the process is complete.
-   *
-   * If the operation should be skipped due to previous batch failure, you
-   * may include this code in the start of this method of your class.
-   * @code
-   * if (\Drupal\gop3_core\Batch\Operator::hasBatchFailed($batch_context)) {
-   *   return 1;
-   * }
-   * @endcode
    */
   public function getProgressRatio(): float;
 

@@ -4,7 +4,7 @@ namespace AKlump\Drupal\BatchFramework;
 
 use Psr\Log\LoggerInterface;
 
-class Operator {
+final class Operator {
 
   /**
    * Handle a single batch operation.
@@ -44,11 +44,14 @@ class Operator {
     $batch_context['logger'] = $logger;
     $batch_context['messenger'] = $messenger;
     $op->setBatchContext($batch_context);
-    if (self::hasBatchFailed($batch_context) && $op->skipOnBatchFailure()) {
+
+    // Handle failures and skipping.
+    if ($op->getBatchFailures() && $op->skipOnBatchFailure()) {
       $batch_context['finished'] = 1;
 
       return;
     }
+
     try {
       $unmet_dependencies = array_diff($op->getDependencies(), $batch_context['results']['operations_finished']);
       if ($unmet_dependencies) {
@@ -85,35 +88,17 @@ class Operator {
     }
   }
 
-  protected static function initializeBatchContext(array &$batch_context) {
+  private static function initializeBatchContext(array &$batch_context) {
     if (isset($batch_context['results']['start'])) {
       return;
     }
     $batch_context['results']['start'] = time();
     $batch_context['results']['operations_finished'] = [];
-    $batch_context['results']['batch_failed'] = FALSE;
     $batch_context['results']['batch_failed_exceptions'] = [];
   }
 
-  public static function setBatchHasFailed(OperationInterface $op, array &$batch_context, BatchFailedException $exception) {
-    $batch_context['results']['batch_failed'] = TRUE;
-    $batch_context['results']['batch_failed_exceptions'][] = $exception;
-    watchdog_exception($op->getLabel(), $exception);
-  }
-
-  /**
-   * Detect if a batch has failed.
-   *
-   * @param array $batch_context
-   *
-   * @return bool
-   */
-  public static function hasBatchFailed(array $batch_context): bool {
-    return isset($batch_context['results']['batch_failed']) && TRUE === $batch_context['results']['batch_failed'];
-  }
-
-  public static function getBatchFailedException(array $batch_context): ?BatchFailedException {
-    return $batch_context['results']['batch_failed_exceptions'] ?? [];
+  private static function setBatchHasFailed(OperationInterface $op, array &$batch_context, BatchFailedException $exception) {
+    $batch_context['results']['batch_failed_exceptions'][] = [$op, $exception];
   }
 
 }
