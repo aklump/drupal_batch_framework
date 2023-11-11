@@ -10,6 +10,9 @@ use Drupal;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Url;
 use Psr\Log\LoggerInterface;
+use ReflectionFunction;
+use function batch_process;
+use function batch_set;
 
 /**
  * An abstract base class for batch definitions.
@@ -34,8 +37,10 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function setMessenger(MessengerInterface $messenger): void {
+  public function setMessenger(MessengerInterface $messenger): self {
     $this->messenger = $messenger;
+
+    return $this;
   }
 
   /**
@@ -66,15 +71,17 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * (optional) URL of the batch processing page. Should only be used for
    * separate scripts like update.php.
    *
-   * @return void
+   * @return self
    *
    * @see \batch_process
    */
-  public function setBatchProcessingPage($url): void {
+  public function setBatchProcessingPage($url): self {
     if ($url instanceof Url) {
       $url = $url->toString();
     }
     $this->batchProcessingPageUrl = $url;
+
+    return $this;
   }
 
   /**
@@ -110,7 +117,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   }
 
   private function handleLegacyDrupalBatchProcessArgs(&$redirect, &$redirect_callback) {
-    $reflect = new \ReflectionFunction('\batch_process');
+    $reflect = new ReflectionFunction('\batch_process');
     foreach ($reflect->getParameters() as $key => $param) {
       if (0 === $key) {
         $redirect = $redirect ?? $param->getDefaultValue();
@@ -127,8 +134,10 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function setLogger(LoggerInterface $logger): void {
+  public function setLogger(LoggerInterface $logger): self {
     $this->logger = $logger;
+
+    return $this;
   }
 
   /**
@@ -154,22 +163,28 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function setTitle($title): void {
+  public function setTitle($title): self {
     $this->batch['title'] = $title;
+
+    return $this;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setInitMessage($init_message): void {
+  public function setInitMessage($init_message): self {
     $this->batch['init_message'] = $init_message;
+
+    return $this;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setProgressMessage($progress_message): void {
+  public function setProgressMessage($progress_message): self {
     $this->batch['progress_message'] = $progress_message;
+
+    return $this;
   }
 
   /**
@@ -179,7 +194,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * OVERRIDE IT.  Use onBatchFinish() to instead, it's cleaner.
    *
    * @param $success
-   * @param $results
+   * @param $batch_data
    * @param $operations
    *
    * @return void

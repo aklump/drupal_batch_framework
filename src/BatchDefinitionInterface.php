@@ -79,18 +79,18 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
    *
    * @param $title
    *
-   * @return void
+   * @return self
    */
-  public function setTitle($title): void;
+  public function setTitle($title): self;
 
   /**
    * Set the message displayed while batch is starting up.
    *
    * @param string $init_message
    *
-   * @return void
+   * @return self
    */
-  public function setInitMessage($init_message): void;
+  public function setInitMessage($init_message): self;
 
   /**
    * Set the progress message
@@ -100,21 +100,21 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
    * @current, @remaining, @total, @percentage, @estimate and @elapsed.
    *   Defaults to t('Completed @current of @total.').
    *
-   * @return void
+   * @return self
    */
-  public function setProgressMessage($progress_message): void;
+  public function setProgressMessage($progress_message): self;
 
   /**
    * @param \Psr\Log\LoggerInterface $logger
    *
-   * @return void
+   * @return self
    */
-  public function setLogger(LoggerInterface $logger): void;
+  public function setLogger(LoggerInterface $logger): self;
 
   /**
    * @param \AKlump\Drupal\BatchFramework\MessengerInterface $messenger
    *
-   * @return void
+   * @return self
    */
-  public function setMessenger(MessengerInterface $messenger): void;
+  public function setMessenger(MessengerInterface $messenger): self;
 }

@@ -148,10 +148,10 @@ function some_form_submit_handler(array &$form, array $form_state) {
   $account = $form_state['values']['account'];
 
   // Identify and configure the batch you want to run.
-  $batch = new FooBatch($account);
-  $batch->setTitle(t('Creating Archive File'));
-  $batch->setInitMessage(t('Getting things rolling...'));
-  $batch->setProgressMessage(t("Building your archive file; about @estimate until we're done."));
+  $batch = new FooBatch($account)
+    ->setTitle(t('Creating Archive File'))
+    ->setInitMessage(t('Getting things rolling...'))
+    ->setProgressMessage(t("Building your archive file; about @estimate until we're done."));
 
   $on_finish_goto = url(current_path());
 
@@ -173,9 +173,10 @@ function some_form_submit_handler(array &$form, FormStateInterface $form_state) 
   $account = $form_state->get('account');
 
   // Identify and configure the batch you want to run.
-  $batch = new FooBatch($account);
-  $batch->setTitle($this->t('Lorem title'));
-  $batch->setInitMessage($this->t('Start your engines...'));
+  $batch = new FooBatch($account)
+    ->setTitle($this->t('Lorem title'))
+    ->setInitMessage($this->t('Start your engines...'))
+    ->setProgressMessage(t("Building your archive file; about @estimate until we're done."));    
 
   // Deteremine where the user will be redirected after the batch stops.
   $on_finish_goto = Url::fromRoute('<front>')->toString();
