@@ -250,7 +250,7 @@ public function initialize(): void {
 
 You can ensure that operation A is run before operation B by implementing `\AKlump\Drupal\BatchFramework\OperationInterface::getDependencies`. This is generally necessary if you are sharing data across operations.
 
-### UX Best Practices
+## UX Best Practices
 
 You should have a final operation in your batch that will handle a batch failure by providing user feedback. Here's an example. Be sure to return `FALSE` for `\OperationInterface::skipOnBatchFailure` for that final operation so it will not be skipped.
 
