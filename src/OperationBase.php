@@ -65,6 +65,13 @@ abstract class OperationBase implements OperationInterface {
   /**
    * @inheritDoc
    */
+  public function initialize(): void {
+
+  }
+
+  /**
+   * @inheritDoc
+   */
   public function finish(): void {
 
   }
