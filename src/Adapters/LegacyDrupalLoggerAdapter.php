@@ -1,8 +1,11 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework\Helpers;
+namespace AKlump\Drupal\BatchFramework\Adapters;
 
-class LegacyDrupalLoggerAdapter implements \Psr\Log\LoggerInterface {
+use Psr\Log\LoggerInterface;
+use function watchdog;
+
+class LegacyDrupalLoggerAdapter implements LoggerInterface {
 
   protected string $channel;
 
@@ -48,4 +51,5 @@ class LegacyDrupalLoggerAdapter implements \Psr\Log\LoggerInterface {
   public function log($level, $message, array $context = array()) {
     watchdog($this->channel, t($message, $context), $context);
   }
+
 }

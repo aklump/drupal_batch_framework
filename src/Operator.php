@@ -68,6 +68,7 @@ class Operator {
         // first.  This is why we skip this here.
         if (isset($progress)) {
           $op->process();
+          $batch_context['message'] = $batch_context['results']['current_activity_message'] ?? '';
         }
         $batch_context['finished'] = $progress = $op->getProgressRatio();
         if (floatval(1) === $progress) {

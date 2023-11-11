@@ -13,6 +13,11 @@ class GetProgressRatioTest extends TestCase {
   public function dataFortestInvokeReturnsCorrectFloatValueProvider() {
     $tests = [];
     $tests[] = [
+      0.7,
+      10,
+      ['do', 're', 'mi']
+    ];
+    $tests[] = [
       1,
       10,
       -1
@@ -49,7 +54,7 @@ class GetProgressRatioTest extends TestCase {
   /**
    * @dataProvider dataFortestInvokeReturnsCorrectFloatValueProvider
    */
-  public function testInvokeReturnsCorrectFloatValue(float $expected, int $total, int $remain) {
+  public function testInvokeReturnsCorrectFloatValue(float $expected, int $total, $remain) {
     $this->assertSame($expected, (new GetProgressRatio())($total, $remain));
   }
 

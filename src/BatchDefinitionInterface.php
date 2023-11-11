@@ -59,7 +59,7 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
    *
    * @return void
    */
-  public function onBatchFinished(bool $batch_status, array $batch_data): void;
+  public function onBatchFinished(bool $batch_status, array &$batch_data): void;
 
   /**
    * Set the title for the progress page.

@@ -2,13 +2,13 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
-use AKlump\Drupal\BatchFramework\Helpers\LegacyDrupalLoggerAdapter;
-use AKlump\Drupal\BatchFramework\Helpers\LegacyDrupalMessengerAdapter;
+use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
+use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
+use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalMessengerAdapter;
 use Drupal;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Url;
 use Psr\Log\LoggerInterface;
-use AKlump\Drupal\BatchFramework\Helpers\DrupalMessengerAdapter;
 
 /**
  * An abstract base class for batch definitions.
@@ -17,6 +17,13 @@ use AKlump\Drupal\BatchFramework\Helpers\DrupalMessengerAdapter;
  * @see \batch_set()
  */
 abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
+
+  const LEGACY = 'legacy';
+
+  /**
+   * Modern drupal starts at version 8.
+   */
+  const MODERN = 'modern';
 
   protected array $batch = [];
 
@@ -27,6 +34,43 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   protected ?string $batchProcessingPageUrl = NULL;
 
   private ?OperationInterface $op = NULL;
+
+  protected string $mode;
+
+  /**
+   * @param string $mode
+   *
+   * @return void
+   *
+   * @see self::LEGACY
+   * @see self::MODERN
+   */
+  public function setMode(string $mode) {
+    if (!in_array($mode, [
+      self::LEGACY,
+      self::MODERN,
+    ])) {
+      throw new \InvalidArgumentException(sprintf('Invalid mode: %s', $mode));
+    }
+    $this->mode = $mode;
+  }
+
+  public function getMode(): string {
+    if (!isset($this->mode)) {
+      $drupal_version = 7;
+      if (class_exists(Drupal::class)) {
+        $drupal_version++;
+      }
+      if (version_compare($drupal_version, '8') >= 0) {
+        $this->mode = self::MODERN;
+      }
+      else {
+        $this->mode = self::LEGACY;
+      }
+    }
+
+    return $this->mode;
+  }
 
   /**
    * {@inheritdoc}
@@ -40,14 +84,11 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    */
   public function getMessenger(): MessengerInterface {
     if (!isset($this->messenger)) {
-      if (class_exists(Messenger::class)) {
+      if (self::MODERN === $this->getMode()) {
         $this->messenger = new DrupalMessengerAdapter();
       }
-      elseif (function_exists('drupal_set_message')) {
-        $this->messenger = new LegacyDrupalMessengerAdapter();
-      }
       else {
-        throw new \RuntimeException(sprintf('Cannot find a suitable class implementing %s.', MessengerInterface::class));
+        $this->messenger = new LegacyDrupalMessengerAdapter();
       }
     }
 
@@ -137,7 +178,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
       if ($this->op) {
         $channel .= '.' . $this->op->getLabel();
       }
-      if (class_exists(Drupal::class)) {
+      if (self::MODERN === $this->getMode()) {
         $this->logger = Drupal::service('logger.factory')->get($channel);
       }
       else {
@@ -172,9 +213,12 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function onBatchFinished(bool $batch_status, array $batch_data): void {
-    $elapsed = time() - $batch_data['start'];
-    $elapsed = "$elapsed seconds";
+  public function onBatchFinished(bool $batch_status, array &$batch_data): void {
+    $elapsed = '(missing)';
+    if (isset($batch_data['start'])) {
+      $batch_data['elapsed'] = time() - $batch_data['start'];
+      $elapsed = $batch_data['elapsed'] . ' seconds';
+    }
 
     // This will remove the operation from the logger channel.
     $this->logger = NULL;

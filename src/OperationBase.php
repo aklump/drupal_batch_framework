@@ -76,18 +76,20 @@ abstract class OperationBase implements OperationInterface {
 
   }
 
-  public function setProgressUpdateMessage(string $message, array $context = []): void {
+  public function setCurrentActivityMessage(string $message, array $context = []): void {
+    // TODO Refactor using the batch mode.
     if (function_exists('t')) {
-      $this->context['message'] = t($message, $context);
-
-      return;
+      $message = t($message, $context);
     }
-    // TODO Support Drupal 8 better.
-    $this->context['message'] = sprintf($message, $context);
+    else {
+      $message = sprintf($message, $context);
+    }
+
+    $this->context['results']['current_activity_message'] = $message;
   }
 
-  public function clearUserMessage(): void {
-    $this->context['message'] = '';
+  public function clearCurrentActivityMessage(): void {
+    $this->context['results']['current_activity_message'] = '';
   }
 
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework\Helpers;
+namespace AKlump\Drupal\BatchFramework\Adapters;
 
 use AKlump\Drupal\BatchFramework\MessengerInterface;
 

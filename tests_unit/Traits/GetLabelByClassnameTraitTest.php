@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait
+ * @uses   \AKlump\Drupal\BatchFramework\Helpers\CreateLabelByClass::__invoke
  */
 class GetLabelByClassnameTraitTest extends TestCase {
 

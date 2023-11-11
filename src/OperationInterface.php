@@ -88,7 +88,7 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * exceptions that are thrown will be added to to the watchdog table
    * automatically.
    *
-   * Use ::setProgressUpdateMessage() or ::clearUserMessage for messaging.
+   * Use ::setCurrentActivityMessage() or ::clearCurrentActivityMessage for messaging.
    *
    * @return void.
    * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
@@ -97,14 +97,35 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
    *   To indicate the operation failed, but the batch should continue.
    *   ::finish() on the active operation will still be called.
-   * @see \AKlump\Drupal\BatchFramework\OperationInterface::setProgressUpdateMessage();
-   * @see \AKlump\Drupal\BatchFramework\OperationInterface::clearUserMessage();
+   * @see \AKlump\Drupal\BatchFramework\OperationInterface::setCurrentActivityMessage();
+   * @see \AKlump\Drupal\BatchFramework\OperationInterface::clearCurrentActivityMessage();
    */
   public function process(): void;
 
-  public function setProgressUpdateMessage(string $message, array $context = []): void;
+  /**
+   * Give a message as to the progress or current task of the operation.
+   *
+   * This should changes frequently to give the user a sense of moving through
+   * the batch, so they know what's happening. This is separate from
+   * BatchDefinitionInterface::setProgressMessage which is a message indicating
+   * the progress of all operations.
+   *
+   * @param string $message
+   * @param array $context
+   *   An array of key/valus that will be replaced in $message.
+   *
+   * @return void
+   *
+   * @see \AKlump\Drupal\BatchFramework\BatchDefinitionInterface::setProgressMessage
+   */
+  public function setCurrentActivityMessage(string $message, array $context = []): void;
 
-  public function clearUserMessage(): void;
+  /**
+   * Clear any existing current activity message.
+   *
+   * @return void
+   */
+  public function clearCurrentActivityMessage(): void;
 
   /**
    * Run quick tasks after processing is completed.
