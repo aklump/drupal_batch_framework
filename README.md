@@ -92,6 +92,34 @@ final class FooBatch extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase {
 
 See _examples/Operations/BarOperation_
 
+## Sharing Data Across Operations
+
+`$this->shared` Should be used to shared data across operations. See `\AKlump\Drupal\BatchFramework\OperationBase::setBatchContext` for more info.
+
+### Operation A
+
+Pass a value by setting in your first operation.
+
+```php
+public function process(): void {
+  $this->shared['path'] = '/foo/bar/baz.html'
+}
+```
+
+### Operation B
+
+Pull the value into the operation sandbox from the shared array.
+
+```php
+public function initialize(): void {
+  $this->sb['path'] = $this->shared['path'];
+}
+```
+
+## Operation Dependencies
+
+You can ensure that operation A is run before operation B by implementing `\AKlump\Drupal\BatchFramework\OperationInterface::getDependencies`. This is generally necessary if you are sharing data across operations.
+
 ## Start the Batch by Submitting a Form
 
 ```php

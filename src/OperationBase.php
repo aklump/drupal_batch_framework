@@ -13,6 +13,11 @@ abstract class OperationBase implements OperationInterface {
 
   protected array $sb = [];
 
+  /**
+   * @var array This is shared across all operations.
+   */
+  protected array $shared = [];
+
   public function getDependencies(): array {
     return [];
   }
@@ -37,8 +42,10 @@ abstract class OperationBase implements OperationInterface {
    */
   public function setBatchContext(array &$batch_context) {
     $this->context = &$batch_context;
-    $batch_context += ['sandbox' => []];
+    $batch_context += ['sandbox' => [], 'results' => []];
+    $batch_context['results'] += ['shared' => []];
     $this->sb = &$batch_context['sandbox'];
+    $this->shared = &$batch_context['results']['shared'];
   }
 
   /**
