@@ -4,10 +4,6 @@ namespace AKlump\Drupal\BatchFramework;
 
 use Psr\Log\LoggerInterface;
 
-/**
- * This class is used to run batches as cron jobs or otherwise programmatically.
- * It is not used when running a batch as a result of a form submission.
- */
 class Operator {
 
   /**
@@ -17,7 +13,6 @@ class Operator {
    * @endcode
    *
    * @param \AKlump\Drupal\BatchFramework\OperationInterface $op
-   * @param array &$batch_context
    * @param int $max_execution
    *   The total seconds not to exceed.  The operation will be processed until
    *   $batch_context['finished'] === 1 or the $max_execution has been met.
@@ -29,6 +24,7 @@ class Operator {
    *   public user.
    * @param \AKlump\Drupal\BatchFramework\MessengerInterface|NULL $messenger
    *   Used to pass messages to the public user when the UI allows for it.
+   * @param array &$batch_context
    *
    * @return void
    *
