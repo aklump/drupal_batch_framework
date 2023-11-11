@@ -28,7 +28,6 @@ class DrupalBatchAPIBaseTest extends TestCase {
 
     $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
       'getLogger',
-      'onBatchFinished',
     ]);
     $batch->method('getLogger')->willReturn($logger);
 
@@ -76,28 +75,44 @@ class DrupalBatchAPIBaseTest extends TestCase {
   /**
    * @dataProvider dataFortestOnBatchFinishedReceivesCorrectStatusProvider
    */
-  public function testOnBatchFinishedReceivesCorrectStatus(bool $expected, array $exception_data) {
+  public function testCorrectBatchStopMethodIsCalled(bool $expected, array $exception_data) {
     $batch_data = [
       'batch_failed_exceptions' => $exception_data,
     ];
 
     $logger = $this->createMock(LoggerInterface::class);
-    $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
-      'getLogger',
-      'onBatchFinished',
-    ]);
-    $batch->method('getLogger')->willReturn($logger);
-    $batch->method('onBatchFinished')
-      ->willReturnCallback(function () use (&$on_batch_finish_args) {
-        $on_batch_finish_args = func_get_args();
-      });
-    $batch->finish(!$expected, $batch_data, []);
 
-    $this->assertSame($expected, $on_batch_finish_args[0]);
+    if ($expected) {
+      $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
+        'getLogger',
+        'handleSuccessfulBatch',
+      ]);
+      $batch->method('getLogger')->willReturn($logger);
+      $batch
+        ->expects($this->exactly(1))
+        ->method('handleSuccessfulBatch')
+        ->willReturnCallback(function () use (&$batch_data) {
+          $batch_data = func_get_args();
+        });
+    }
+    else {
+      $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
+        'getLogger',
+        'handleFailedBatch',
+      ]);
+      $batch->method('getLogger')->willReturn($logger);
+      $batch
+        ->expects($this->exactly(1))
+        ->method('handleFailedBatch')
+        ->willReturnCallback(function () use (&$batch_data) {
+          $batch_data = func_get_args();
+        });
+    }
+
+    $batch->finish(!$expected, $batch_data, []);
   }
 
-
-  public function testOnBatchFinishedReceivesElapsedTime() {
+  public function testHandleSuccessfulBatchReceivesElapsedTime() {
     $expected_min_duration = 120;
 
     $batch_data = [
@@ -107,12 +122,40 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $logger = $this->createMock(LoggerInterface::class);
     $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
       'getLogger',
-      'onBatchFinished',
+      'handleSuccessfulBatch',
     ]);
     $batch->method('getLogger')->willReturn($logger);
-    $batch->method('onBatchFinished')
+    $batch->method('handleSuccessfulBatch')
       ->willReturnCallback(function () use (&$elapsed) {
-        $elapsed = func_get_args()[1]['elapsed'];
+        $elapsed = func_get_args()[0]['elapsed'];
+      });
+    $batch->finish(TRUE, $batch_data, []);
+
+    $this->assertGreaterThanOrEqual($expected_min_duration, $elapsed);
+  }
+
+  public function testHandleFailedBatchReceivesElapsedTime() {
+    $expected_min_duration = 120;
+
+    $batch_data = [
+      'start' => time() - $expected_min_duration,
+      'batch_failed_exceptions' => [
+        [
+          $this->createMock(OperationInterface::class),
+          new BatchFailedException(),
+        ],
+      ],
+    ];
+
+    $logger = $this->createMock(LoggerInterface::class);
+    $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
+      'getLogger',
+      'handleFailedBatch',
+    ]);
+    $batch->method('getLogger')->willReturn($logger);
+    $batch->method('handleFailedBatch')
+      ->willReturnCallback(function () use (&$elapsed) {
+        $elapsed = func_get_args()[0]['elapsed'];
       });
     $batch->finish(TRUE, $batch_data, []);
 

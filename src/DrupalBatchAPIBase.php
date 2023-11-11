@@ -173,7 +173,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   }
 
   /**
-   * A wrapper for our API method onBatchFinished.
+   * A wrapper for our API batch stop methods.
    *
    * This mutates the results to match our API.  DO NOT CALL THIS METHOD NOR
    * OVERRIDE IT.  Use onBatchFinish() to instead, it's cleaner.
@@ -185,6 +185,8 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * @return void
    *
    * @see callback_batch_finished()
+   * @see \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase::handleSuccessfulBatch
+   * @see \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase::handleFailedBatch()
    */
   public function finish($success, $batch_data, $operations) {
     // I have found that $success comes as TRUE when it shouldn't, and I don't
@@ -225,14 +227,24 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
         $this->getLogger()->error($exception->getMessage());
       }
     }
-
-    $this->onBatchFinished($batch_status, $batch_data);
+    if (FALSE === $batch_status) {
+      $this->handleFailedBatch($batch_data);
+    }
+    else {
+      $this->handleSuccessfulBatch($batch_data);
+    }
   }
 
   /**
    * {@inheritdoc}
    */
-  public function onBatchFinished(bool $batch_status, array &$batch_data): void {
+  public function handleFailedBatch(array &$batch_data): void {
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function handleSuccessfulBatch(array &$batch_data): void {
   }
 
 }
