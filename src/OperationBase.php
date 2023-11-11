@@ -3,11 +3,13 @@
 namespace AKlump\Drupal\BatchFramework;
 
 use AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
+use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use Psr\Log\LoggerInterface;
 
 abstract class OperationBase implements OperationInterface {
 
   use GetLabelByClassnameTrait;
+  use HasDrupalModeTrait;
 
   protected array $context = [];
 
@@ -21,7 +23,6 @@ abstract class OperationBase implements OperationInterface {
   public function getDependencies(): array {
     return [];
   }
-
 
   /**
    * @inheritDoc

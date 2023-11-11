@@ -5,6 +5,7 @@ namespace AKlump\Drupal\BatchFramework;
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalMessengerAdapter;
+use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use Drupal;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Url;
@@ -18,12 +19,7 @@ use Psr\Log\LoggerInterface;
  */
 abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
 
-  const LEGACY = 'legacy';
-
-  /**
-   * Modern drupal starts at version 8.
-   */
-  const MODERN = 'modern';
+  use HasDrupalModeTrait;
 
   protected array $batch = [];
 
@@ -34,43 +30,6 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   protected ?string $batchProcessingPageUrl = NULL;
 
   private ?OperationInterface $op = NULL;
-
-  protected string $mode;
-
-  /**
-   * @param string $mode
-   *
-   * @return void
-   *
-   * @see self::LEGACY
-   * @see self::MODERN
-   */
-  public function setMode(string $mode) {
-    if (!in_array($mode, [
-      self::LEGACY,
-      self::MODERN,
-    ])) {
-      throw new \InvalidArgumentException(sprintf('Invalid mode: %s', $mode));
-    }
-    $this->mode = $mode;
-  }
-
-  public function getMode(): string {
-    if (!isset($this->mode)) {
-      $drupal_version = 7;
-      if (class_exists(Drupal::class)) {
-        $drupal_version++;
-      }
-      if (version_compare($drupal_version, '8') >= 0) {
-        $this->mode = self::MODERN;
-      }
-      else {
-        $this->mode = self::LEGACY;
-      }
-    }
-
-    return $this->mode;
-  }
 
   /**
    * {@inheritdoc}
@@ -84,7 +43,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    */
   public function getMessenger(): MessengerInterface {
     if (!isset($this->messenger)) {
-      if (self::MODERN === $this->getMode()) {
+      if ($this->getDrupalMode()->isModern()) {
         $this->messenger = new DrupalMessengerAdapter();
       }
       else {
@@ -123,6 +82,9 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    */
   public function process(string $redirect = NULL, $redirect_callback = NULL) {
     $this->batch['operations'] = array_map(function (OperationInterface $op) {
+      if (method_exists($op, 'setDrupalMode')) {
+        $op->setDrupalMode($this->getDrupalMode());
+      }
       $this->op = $op;
 
       return [
@@ -178,7 +140,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
       if ($this->op) {
         $channel .= '.' . $this->op->getLabel();
       }
-      if (self::MODERN === $this->getMode()) {
+      if ($this->getDrupalMode()->isModern()) {
         $this->logger = Drupal::service('logger.factory')->get($channel);
       }
       else {
