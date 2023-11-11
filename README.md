@@ -252,37 +252,18 @@ You can ensure that operation A is run before operation B by implementing `\AKlu
 
 ## UX Best Practices
 
-You should have a final operation in your batch that will handle a batch failure by providing user feedback. Here's an example. Be sure to return `FALSE` for `\OperationInterface::skipOnBatchFailure` for that final operation so it will not be skipped.
+You should handle a batch failure by providing user feedback in `\AKlump\Drupal\BatchFramework\BatchDefinitionInterface::handleFailedBatch`
 
 ```php
-<?php
-class HandleFailure extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase {
+public function handleFailedBatch(array &$batch_data): void {
+  
+  // Delete the incomplete files created in the batch.
+  $service = new FooBarExportService();
+  $service->deleteExistingExportFiles($this->account);
 
-  public function skipOnBatchFailure(): bool {
-    return FALSE;
-  }
-
-  public function initialize(): void {
-    $this->sb['failures'] = $this->getBatchFailures();
-    $this->sb['total'] = count($this->sb['failures'] ?? []);
-  }
-
-  public function isInitialized(): bool {
-    return isset($this->sb['failures']);
-  }
-
-  public function getProgressRatio(): float {
-    return (new \AKlump\Drupal\BatchFramework\Helpers\GetProgressRatio())($this->sb['total'], count($this->sb['failures']));
-  }
-
-  public function process(): void {
-    foreach ($this->sb['failures'] as $failure) {
-
-      // In reality you would probably not pass the exception message to the user, but clean it up in some way.
-      $this->getMessenger()
-        ->addMessage($failure->getMessage(), \AKlump\Drupal\BatchFramework\MessengerInterface::TYPE_ERROR);
-    }
-    $this->sb['failures'] = [];
-  }
+  $m = $this->getMessenger();
+  $m->addMessage(t('The process has failed, unfortunately.'), MessengerInterface::TYPE_ERROR);
+  $m->addMessage(t("We've been notified.  Kindly give us a day or two to work it out."), MessengerInterface::TYPE_STATUS);
+  $m->addMessage(t('Thank you for your patience.'), MessengerInterface::TYPE_STATUS);
 }
 ```
