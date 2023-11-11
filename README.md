@@ -138,7 +138,34 @@ class BarOperation extends \AKlump\Drupal\BatchFramework\OperationBase {
 }
 ```
 
-## Start the Batch by Submitting a Form
+## Start the Batch (< Drupal 8)
+
+### Using a Form
+
+```php
+function some_form_submit_handler(array &$form, array $form_state) {
+  // Grab data from the form inputs.
+  $account = $form_state['values']['account'];
+
+  // Identify and configure the batch you want to run.
+  $batch = new FooBatch($account);
+  $batch->setTitle(t('Creating Archive File'));
+  $batch->setInitMessage(t('Getting things rolling...'));
+  $batch->setProgressMessage(t("Building your archive file; about @estimate until we're done."));
+
+  $on_finish_goto = url(current_path());
+
+  return $batch->process($on_finish_goto);
+}
+```
+
+## From a Controller
+
+@todo
+
+## Start the Batch (Drupal 8+)
+
+### Using a Form
 
 ```php
 function some_form_submit_handler(array &$form, FormStateInterface $form_state) {
@@ -151,13 +178,13 @@ function some_form_submit_handler(array &$form, FormStateInterface $form_state) 
   $batch->setInitMessage($this->t('Start your engines...'));
 
   // Deteremine where the user will be redirected after the batch stops.
-  $post_batch_redirect = Url::fromRoute('<front>')->toString();
-  $response = $batch->process($post_batch_redirect);
+  $on_finish_goto = Url::fromRoute('<front>')->toString();
+  $response = $batch->process($on_finish_goto);
   $form_state->setResponse($response);
 }
 ```
 
-## Execute a Single Operation from a Controller Class
+## From a Controller
 
 `Operator::handleOperation` is an easy way to leverage your batch operation
 outside of a batch. It allows you to trigger a single operation that will run
