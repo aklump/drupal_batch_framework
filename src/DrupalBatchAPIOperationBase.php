@@ -4,6 +4,7 @@ namespace AKlump\Drupal\BatchFramework;
 
 use AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
 use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Psr\Log\LoggerInterface;
 
 abstract class DrupalBatchAPIOperationBase implements OperationInterface {
@@ -79,8 +80,7 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
 
   public function setCurrentActivityMessage(string $message, array $context = []): void {
     if ($this->drupalMode->isModern()) {
-      // TODO Fix this for D8+
-      $message = sprintf($message, $context);
+      $message = (string) (new TranslatableMarkup($message, $context));
     }
     else {
       $message = t($message, $context);

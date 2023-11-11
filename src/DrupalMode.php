@@ -2,6 +2,8 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use \Drupal;
+
 class DrupalMode {
 
   const LEGACY = 'legacy';
@@ -12,7 +14,6 @@ class DrupalMode {
   const MODERN = 'modern';
 
   protected string $mode;
-
 
   /**
    * Determine if you're in modern drupal.
