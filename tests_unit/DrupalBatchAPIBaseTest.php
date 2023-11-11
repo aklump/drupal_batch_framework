@@ -49,7 +49,7 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $batch = $this->createPartialMock(Batch_ModernDrupal::class, ['getLogger']);
     $batch->method('getLogger')->willReturn($logger);
 
-    $batch->onBatchFinished(TRUE, $batch_data);
+    $batch_data = $batch->onBatchFinished(TRUE, $batch_data);
     $this->assertGreaterThanOrEqual($expected_min_duration, $batch_data['elapsed']);
   }
 

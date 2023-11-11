@@ -54,12 +54,20 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
   public function process(string $redirect = NULL, $redirect_callback = NULL);
 
   /**
+   * Act on when a batch is finished (pass or fail).
+   *
+   * This will be called if a BatchFailedException is thrown, but all other
+   * exceptions will bypass it.
+   *
    * @param bool $batch_status
+   *   True if all operations have succeeded.
    * @param array $batch_data
    *
-   * @return void
+   * @return array
+   *   $batch_data with any modifications.
+   *
    */
-  public function onBatchFinished(bool $batch_status, array &$batch_data): void;
+  public function onBatchFinished(bool $batch_status, array $batch_data): array;
 
   /**
    * Set the title for the progress page.

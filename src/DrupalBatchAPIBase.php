@@ -213,7 +213,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function onBatchFinished(bool $batch_status, array &$batch_data): void {
+  public function onBatchFinished(bool $batch_status, array $batch_data): array {
     $elapsed = '(missing)';
     if (isset($batch_data['start'])) {
       $batch_data['elapsed'] = time() - $batch_data['start'];
@@ -236,6 +236,8 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
         '@time' => $elapsed,
       ]);
     }
+
+    return $batch_data;
   }
 
 }
