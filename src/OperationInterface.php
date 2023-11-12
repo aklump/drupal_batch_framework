@@ -40,7 +40,7 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
   /**
    * Get batch failures.
    *
-   * @return \AKlump\Drupal\BatchFramework\BatchFailedException[]
+   * @return array
    *   Contains any errors to this point across all operations in the batch.
    */
   public function getBatchFailures(): array;
@@ -56,9 +56,6 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * Initialize the operation.
    *
    * @return void
-   *
-   * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
-   *   For any reason that indicates initialization failed.
    */
   public function initialize(): void;
 
@@ -85,12 +82,6 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * Use ::setCurrentActivityMessage() or ::clearCurrentActivityMessage for messaging.
    *
    * @return void.
-   * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
-   *   To indicate the operation failed and no more operations should run.
-   *   ::finish on the active operation will NOT be called.
-   * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
-   *   To indicate the operation failed, but the batch should continue.
-   *   ::finish() on the active operation will still be called.
    * @see \AKlump\Drupal\BatchFramework\OperationInterface::setCurrentActivityMessage();
    * @see \AKlump\Drupal\BatchFramework\OperationInterface::clearCurrentActivityMessage();
    */
@@ -129,17 +120,7 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    * Operation class.
    *
    * This method will be called if the process completes successfully OR if an
-   * BatchFailedException exception was thrown from this same class..  In
-   * the case of the latter, the exception will be available in the context; see
-   * \AKlump\Drupal\BatchFramework\BatchFailedException for variable names.
-   *
-   * When handling errors in this method, you should not throw an
-   * BatchFailedException as it will not be handled correctly; that is it
-   * will not call ::finish().  You may throw a BatchFailedException.
-   *
-   * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
-   *   To indicate the operation failed and no more operations should run.
-   *   ::finish on the active operation will NOT be called.
+   * exception was thrown from this same class.
    */
   public function finish(): void;
 

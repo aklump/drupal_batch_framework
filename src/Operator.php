@@ -27,9 +27,6 @@ final class Operator {
    * @param array &$batch_context
    *
    * @return void
-   *
-   * @throws \AKlump\Drupal\BatchFramework\BatchFailedException
-   *   When the operation has not completed successfully.
    */
   public static function handleOperation(
     OperationInterface $op,

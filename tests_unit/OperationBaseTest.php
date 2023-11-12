@@ -3,8 +3,8 @@
 namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
-use AKlump\Drupal\BatchFramework\BatchFailedException;
 use AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase;
+use AKlump\Drupal\BatchFramework\OperationInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -16,8 +16,8 @@ class OperationBaseTest extends TestCase {
   public function testGetBatchFailuresPassesContext() {
     $batch_context = [];
     $batch_context['results']['exceptions'] = [
-      new BatchFailedException('foo'),
-      new BatchFailedException('bar'),
+      (new GetExceptionData())($this->createMock(OperationInterface::class), new \RuntimeException('foo')),
+      (new GetExceptionData())($this->createMock(OperationInterface::class), new \RuntimeException('bar')),
     ];
     $op = new Operation();
     $op->setBatchContext($batch_context);

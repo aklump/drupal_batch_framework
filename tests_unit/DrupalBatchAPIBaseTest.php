@@ -5,11 +5,11 @@ namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalMessengerAdapter;
-use AKlump\Drupal\BatchFramework\BatchFailedException;
 use AKlump\Drupal\BatchFramework\DrupalBatchAPIBase;
 use AKlump\Drupal\BatchFramework\DrupalMode;
 use AKlump\Drupal\BatchFramework\MessengerInterface;
 use AKlump\Drupal\BatchFramework\OperationInterface;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -33,10 +33,10 @@ class DrupalBatchAPIBaseTest extends TestCase {
 
     $batch_data = [
       'exceptions' => [
-        [
+        (new GetExceptionData())(
           $this->createMock(OperationInterface::class),
-          new BatchFailedException(),
-        ],
+          new Exception()
+        ),
       ],
     ];
     $batch->finish(FALSE, $batch_data, []);
@@ -53,7 +53,7 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $batch->finish(TRUE, $batch_data, []);
   }
 
-  public function dataFortestOnBatchFinishedReceivesCorrectStatusProvider() {
+  public function dataForTestOnBatchFinishedReceivesCorrectStatusProvider() {
     $tests = [];
     $tests[] = [
       TRUE,
@@ -64,7 +64,7 @@ class DrupalBatchAPIBaseTest extends TestCase {
       [
         [
           $this->createMock(OperationInterface::class),
-          new BatchFailedException(),
+          new Exception(),
         ],
       ],
     ];
@@ -73,7 +73,7 @@ class DrupalBatchAPIBaseTest extends TestCase {
   }
 
   /**
-   * @dataProvider dataFortestOnBatchFinishedReceivesCorrectStatusProvider
+   * @dataProvider dataForTestOnBatchFinishedReceivesCorrectStatusProvider
    */
   public function testCorrectBatchStopMethodIsCalled(bool $expected, array $exception_data) {
     $batch_data = [
@@ -109,7 +109,7 @@ class DrupalBatchAPIBaseTest extends TestCase {
         });
     }
 
-    $batch->finish(!$expected, $batch_data, []);
+    $batch->finish(TRUE, $batch_data, []);
   }
 
   public function testHandleSuccessfulBatchReceivesElapsedTime() {
@@ -140,10 +140,10 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $batch_data = [
       'start' => time() - $expected_min_duration,
       'exceptions' => [
-        [
+        (new GetExceptionData())(
           $this->createMock(OperationInterface::class),
-          new BatchFailedException(),
-        ],
+          new Exception()
+        ),
       ],
     ];
 
@@ -276,4 +276,5 @@ class Batch_AutoDetectDrupal extends DrupalBatchAPIBase {
   }
 
 }
+
 

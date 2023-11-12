@@ -217,7 +217,6 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   public function finish($success, $batch_data, $operations) {
     // I have found that $success comes as TRUE when it shouldn't, and I don't
     // know why, so I've handled batch success detection on my own further down.
-    //  I think it's because of how I architected the BatchFailedException bit.
 
     // Calculate the batch elapsed time.
     $elapsed = '(missing)';
@@ -250,8 +249,11 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
         // Setting NULL is so that the logger label resets each time, with the
         // current op.
         $this->logger = NULL;
-        $this->opInLoggerChannel = $data['op'];
-        $this->getLogger()->error($data['message'] . "\n" . $data['exception_trace']);
+        $this->opInLoggerChannel = $data['op'] ?? '';
+        $message = trim(($data['message'] ?? '') . "\n" . ($data['exception_trace'] ?? ''));
+        if ($message) {
+          $this->getLogger()->error($message);
+        }
       }
 
       $this->logger = NULL;

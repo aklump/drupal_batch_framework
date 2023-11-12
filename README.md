@@ -215,8 +215,6 @@ class BarController extends ControllerBase {
 * All exceptions thrown during a batch will be caught and cause the batch to be marked as failed.
 * `BatchDefinitionInterface::handleFailedBatch` is always called after an exception is caught.
 * Take appropriate action in `BatchDefinitionInterface::handleFailedBatch` such as using `getMessenger` to alert the user.
-* If an operation wants to mark the batch failed it should throw `\AKlump\Drupal\BatchFramework\BatchFailedException`
-* When `BatchFailedException` is thrown the operation's `\AKlump\Drupal\BatchFramework\OperationInterface::finish` method will still be called. See the method for more info.
 * See `\AKlump\Drupal\BatchFramework\Operator::handleOperation` which handles the exception for more info.
 
 ### Other Failures
