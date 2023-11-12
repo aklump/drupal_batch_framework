@@ -76,12 +76,12 @@ final class Operator {
         }
       } while (time() < $end && $batch_context['finished'] < 1);
     }
-    catch (BatchFailedException $exception) {
+    catch (\Exception $exception) {
       self::setBatchHasFailed($op, $batch_context, $exception);
       try {
         $op->finish();
       }
-      catch (BatchFailedException $exception) {
+      catch (\Exception $exception) {
         self::setBatchHasFailed($op, $batch_context, $exception);
       }
       $batch_context['finished'] = 1;
@@ -94,11 +94,18 @@ final class Operator {
     }
     $batch_context['results']['start'] = time();
     $batch_context['results']['operations_finished'] = [];
-    $batch_context['results']['batch_failed_exceptions'] = [];
+    $batch_context['results']['exceptions'] = [];
   }
 
-  private static function setBatchHasFailed(OperationInterface $op, array &$batch_context, BatchFailedException $exception) {
-    $batch_context['results']['batch_failed_exceptions'][] = [$op, $exception];
+  private static function setBatchHasFailed(OperationInterface $op, array &$batch_context, \Exception $exception) {
+    $batch_context['results']['exceptions'][] = [
+      'op_class' => get_class($op),
+      'op' => $op->getLabel(),
+      'message' => $exception->getMessage(),
+      'exception_class' => get_class($exception),
+      'exception_code' => $exception->getCode(),
+      'exception_trace' => $exception->getTraceAsString(),
+    ];
   }
 
 }

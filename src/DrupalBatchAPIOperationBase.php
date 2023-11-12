@@ -61,7 +61,7 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
    * {@inheritdoc}
    */
   public function getBatchFailures(): array {
-    return $this->context['results']['batch_failed_exceptions'] ?? [];
+    return $this->context['results']['exceptions'] ?? [];
   }
 
   /**

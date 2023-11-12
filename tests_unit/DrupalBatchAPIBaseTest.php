@@ -32,7 +32,7 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $batch->method('getLogger')->willReturn($logger);
 
     $batch_data = [
-      'batch_failed_exceptions' => [
+      'exceptions' => [
         [
           $this->createMock(OperationInterface::class),
           new BatchFailedException(),
@@ -77,7 +77,7 @@ class DrupalBatchAPIBaseTest extends TestCase {
    */
   public function testCorrectBatchStopMethodIsCalled(bool $expected, array $exception_data) {
     $batch_data = [
-      'batch_failed_exceptions' => $exception_data,
+      'exceptions' => $exception_data,
     ];
 
     $logger = $this->createMock(LoggerInterface::class);
@@ -139,7 +139,7 @@ class DrupalBatchAPIBaseTest extends TestCase {
 
     $batch_data = [
       'start' => time() - $expected_min_duration,
-      'batch_failed_exceptions' => [
+      'exceptions' => [
         [
           $this->createMock(OperationInterface::class),
           new BatchFailedException(),

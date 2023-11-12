@@ -15,18 +15,17 @@ class OperationBaseTest extends TestCase {
 
   public function testGetBatchFailuresPassesContext() {
     $batch_context = [];
-    $batch_context['results']['batch_failed_exceptions'] = [
+    $batch_context['results']['exceptions'] = [
       new BatchFailedException('foo'),
       new BatchFailedException('bar'),
     ];
     $op = new Operation();
     $op->setBatchContext($batch_context);
-    $this->assertSame($batch_context['results']['batch_failed_exceptions'], $op->getBatchFailures());
+    $this->assertSame($batch_context['results']['exceptions'], $op->getBatchFailures());
   }
 
   public function testGetBatchFailuresIsEmptyWhenContextIsEmpty() {
     $batch_context = [];
-    //    $batch_context['results']['batch_failed_exceptions'] = [];
     $op = new Operation();
     $op->setBatchContext($batch_context);
     $this->assertSame([], $op->getBatchFailures());

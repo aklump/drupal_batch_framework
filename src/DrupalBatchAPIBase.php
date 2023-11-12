@@ -26,13 +26,15 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
 
   protected array $batch = [];
 
-  protected ?LoggerInterface $logger = NULL;
+  private ?LoggerInterface $logger = NULL;
 
-  protected ?MessengerInterface $messenger = NULL;
+  private ?MessengerInterface $messenger = NULL;
 
   protected ?string $batchProcessingPageUrl = NULL;
 
   private ?OperationInterface $op = NULL;
+
+  private string $opInLoggerChannel = '';
 
   /**
    * {@inheritdoc}
@@ -146,9 +148,18 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   public function getLogger(): LoggerInterface {
     if (!$this->logger) {
       $channel = $this->getLabel();
-      if ($this->op) {
-        $channel .= ': ' . $this->op->getLabel();
+
+      $op_label = '';
+      if ($this->opInLoggerChannel) {
+        $op_label = $this->opInLoggerChannel;
       }
+      elseif ($this->op) {
+        $op_label = $this->op->getLabel();
+      }
+      if ($op_label) {
+        $channel .= ': ' . $op_label;
+      }
+
       if ($this->getDrupalMode()->isModern()) {
         $this->logger = Drupal::service('logger.factory')->get($channel);
       }
@@ -216,11 +227,12 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
     }
 
     // Base batch status on if any exception was thrown.
-    $batch_status = empty($batch_data["batch_failed_exceptions"]);
+    $batch_status = $success && empty($batch_data['exceptions']);
 
     // This will remove the operation from the logger channel.
     $this->logger = NULL;
     $this->op = NULL;
+    $this->opInLoggerChannel = '';
 
     if ($batch_status) {
       $this->getLogger()->info("All batch operations completed in @time.", [
@@ -234,13 +246,16 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
         '@time' => $elapsed,
       ]);
 
-      foreach ($batch_data["batch_failed_exceptions"] as $data) {
+      foreach ($batch_data['exceptions'] as $data) {
         // Setting NULL is so that the logger label resets each time, with the
         // current op.
         $this->logger = NULL;
-        list($this->op, $exception) = $data;
-        $this->getLogger()->error($exception->getMessage());
+        $this->opInLoggerChannel = $data['op'];
+        $this->getLogger()->error($data['message'] . "\n" . $data['exception_trace']);
       }
+
+      $this->logger = NULL;
+      $this->opInLoggerChannel = '';
     }
     if (FALSE === $batch_status) {
       $this->handleFailedBatch($batch_data);
