@@ -39,10 +39,6 @@ class OperationBaseTest extends TestCase {
     $this->assertSame($batch_context['logger'], $op->getLogger());
   }
 
-  public function testSkipOnBatchFailure() {
-    $this->assertTrue((new Operation())->skipOnBatchFailure());
-  }
-
   public function testGetDependencies() {
     $this->assertSame([], (new Operation())->getDependencies());
 

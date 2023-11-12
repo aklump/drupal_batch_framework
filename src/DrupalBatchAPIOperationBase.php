@@ -53,13 +53,6 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
   /**
    * {@inheritdoc}
    */
-  public function skipOnBatchFailure(): bool {
-    return TRUE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getBatchFailures(): array {
     return $this->context['results']['exceptions'] ?? [];
   }
@@ -79,7 +72,7 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
   }
 
   public function setCurrentActivityMessage(string $message, array $context = []): void {
-    if ($this->drupalMode->isModern()) {
+    if ($this->getDrupalMode()->isModern()) {
       $message = (string) (new TranslatableMarkup($message, $context));
     }
     else {

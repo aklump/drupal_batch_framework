@@ -1,7 +1,7 @@
 # Drupal Batch Framework (A Drupal Component)
 
-* [What is a Drupal Components?](https://www.drupal.org/docs/core-modules-and-themes/basic-structure-of-drupal#s-drupal-components)
-* Common interface for all Drupal versions >= 6
+* [What are Drupal Components?](https://www.drupal.org/docs/core-modules-and-themes/basic-structure-of-drupal#s-drupal-components)
+* This framework works with and uses a common interface for all Drupal versions.
 * [Drupal.org Batch API Docs](https://www.drupal.org/docs/7/api/batch-api)
 
 ## Installation
@@ -212,11 +212,11 @@ class BarController extends ControllerBase {
 
 ### Batch Failures
 
-* Each operation may elect to be skipped or not, when that batch has failed by implementing `\OperationInterface::skipOnBatchFailure`.
+* All exceptions thrown during a batch will be caught and cause the batch to be marked as failed.
+* `BatchDefinitionInterface::handleFailedBatch` is always called after an exception is caught.
+* Take appropriate action in `BatchDefinitionInterface::handleFailedBatch` such as using `getMessenger` to alert the user.
 * If an operation wants to mark the batch failed it should throw `\AKlump\Drupal\BatchFramework\BatchFailedException`
-* **Any other uncaught exceptions will make their way to Drupal, so be careful about that.** It's usually not pretty for the user.
-* When an operation throws such exception, it's `\AKlump\Drupal\BatchFramework\OperationInterface::finish` method will be called. See the method for more info.
-* The `\AKlump\Drupal\BatchFramework\OperationInterface::finish` may also throw such exception.
+* When `BatchFailedException` is thrown the operation's `\AKlump\Drupal\BatchFramework\OperationInterface::finish` method will still be called. See the method for more info.
 * See `\AKlump\Drupal\BatchFramework\Operator::handleOperation` which handles the exception for more info.
 
 ### Other Failures
@@ -262,6 +262,7 @@ public function handleFailedBatch(array &$batch_data): void {
   $service = new FooBarExportService();
   $service->deleteExistingExportFiles($this->account);
 
+  // Tell the user what happened.
   $m = $this->getMessenger();
   $m->addMessage(t('The process has failed, unfortunately.'), MessengerInterface::TYPE_ERROR);
   $m->addMessage(t("We've been notified.  Kindly give us a day or two to work it out."), MessengerInterface::TYPE_STATUS);

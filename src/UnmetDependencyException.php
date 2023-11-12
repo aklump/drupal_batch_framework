@@ -7,8 +7,6 @@ namespace AKlump\Drupal\BatchFramework;
  *
  * Batches with multiple operations should make use of the following to control
  * how they act when after a batch failed exception has been thrown.
- *
- * @see \AKlump\Drupal\BatchFramework\OperationInterface::skipOnBatchFailure
  */
 class UnmetDependencyException extends \RuntimeException {
 

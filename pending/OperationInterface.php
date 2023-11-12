@@ -86,12 +86,6 @@ interface OperationInterface {
   public function setLogger(LoggerInterface $logger);
 
   /**
-   * @return bool
-   *   If this operation should not run when the batch has failed, return true.
-   */
-  public function skipOnBatchFailure(): bool;
-
-  /**
    * Has the operation been initialized yet.
    *
    * @return bool

@@ -28,7 +28,7 @@ class Operator {
     $operation->setLogger($logger_channel);
     $operation->setMessenger($messenger);
     $operation->setBatchContext($batch_context);
-    if (self::hasBatchFailed($batch_context) && $operation->skipOnBatchFailure()) {
+    if (self::hasBatchFailed($batch_context)) {
       $batch_context['finished'] = 1;
 
       return;

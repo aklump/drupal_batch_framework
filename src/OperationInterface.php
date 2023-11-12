@@ -38,12 +38,6 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
   public function setBatchContext(array &$batch_context);
 
   /**
-   * @return bool
-   *   If this operation should not run when the batch has failed, return true.
-   */
-  public function skipOnBatchFailure(): bool;
-
-  /**
    * Get batch failures.
    *
    * @return \AKlump\Drupal\BatchFramework\BatchFailedException[]

@@ -45,8 +45,7 @@ final class Operator {
     $batch_context['messenger'] = $messenger;
     $op->setBatchContext($batch_context);
 
-    // Handle failures and skipping.
-    if ($op->getBatchFailures() && $op->skipOnBatchFailure()) {
+    if ($op->getBatchFailures()) {
       $batch_context['finished'] = 1;
 
       return;
