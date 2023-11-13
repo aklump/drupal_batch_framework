@@ -16,13 +16,26 @@ class DrupalMode {
   protected string $mode;
 
   /**
+   * @param string $mode
+   *   Omit to auto-detect.
+   *
+   * @see self::MODERN
+   * @see self::LEGACY
+   */
+  public function __construct(string $mode = NULL) {
+    if ($mode) {
+      $this->set($mode);
+    }
+  }
+
+  /**
    * Determine if you're in modern drupal.
    *
    * @return bool
    *   TRUE if version >=8
    */
   public function isModern(): bool {
-    return $this->get() === self::MODERN;
+    return (string) $this === self::MODERN;
   }
 
 
@@ -34,7 +47,7 @@ class DrupalMode {
    * @see self::LEGACY
    * @see self::MODERN
    */
-  public function set(string $mode): self {
+  private function set(string $mode): self {
     if (!in_array($mode, [
       self::LEGACY,
       self::MODERN,
@@ -46,7 +59,7 @@ class DrupalMode {
     return $this;
   }
 
-  public function get(): string {
+  public function __toString(): string {
     if (!isset($this->mode)) {
       $drupal_version = 7;
       if (class_exists(Drupal::class)) {

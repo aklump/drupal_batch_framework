@@ -3,8 +3,8 @@
 namespace AKlump\Drupal\BatchFramework;
 
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
-use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalMessengerAdapter;
+use AKlump\Drupal\BatchFramework\Helpers\GetLogger;
 use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use Drupal;
 use Drupal\Core\Messenger\Messenger;
@@ -90,17 +90,17 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * {@inheritdoc}
    */
   public function process(string $redirect = NULL, $redirect_callback = NULL) {
-    $this->batch['operations'] = array_map(function (OperationInterface $op) {
-      if (method_exists($op, 'setDrupalMode')) {
-        $op->setDrupalMode($this->getDrupalMode());
+    $this->batch['operations'] = array_map(function (OperationInterface $operation) {
+      if (method_exists($operation, 'setDrupalMode')) {
+        $operation->setDrupalMode($this->getDrupalMode());
       }
-      $this->op = $op;
+      $this->op = $operation;
 
       return [
         [Operator::class, 'handleOperation'],
         [
           // TODO It's possible we should be sending classname, not instance to avoid serialization issues.  Needs more testing.
-          $op,
+          $operation,
           3,
           $this->getLogger(),
           $this->getMessenger(),
@@ -136,39 +136,21 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function setLogger(LoggerInterface $logger): self {
-    $this->logger = $logger;
-
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getLogger(): LoggerInterface {
-    if (!$this->logger) {
-      $channel = $this->getLabel();
-
-      $op_label = '';
-      if ($this->opInLoggerChannel) {
-        $op_label = $this->opInLoggerChannel;
-      }
-      elseif ($this->op) {
-        $op_label = $this->op->getLabel();
-      }
-      if ($op_label) {
-        $channel .= ': ' . $op_label;
-      }
-
-      if ($this->getDrupalMode()->isModern()) {
-        $this->logger = Drupal::service('logger.factory')->get($channel);
-      }
-      else {
-        $this->logger = new LegacyDrupalLoggerAdapter($channel);
-      }
+    $op_label = '';
+    if ($this->opInLoggerChannel) {
+      $op_label = $this->opInLoggerChannel;
+    }
+    elseif ($this->op) {
+      $op_label = $this->op->getLabel();
     }
 
-    return $this->logger;
+    $channel = $this->getLabel();
+    if ($op_label) {
+      $channel .= ': ' . $op_label;
+    }
+
+    return (new GetLogger($this->getDrupalMode()))($channel);
   }
 
   /**
@@ -229,7 +211,6 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
     $batch_status = $success && empty($batch_data['exceptions']);
 
     // This will remove the operation from the logger channel.
-    $this->logger = NULL;
     $this->op = NULL;
     $this->opInLoggerChannel = '';
 
@@ -245,10 +226,10 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
         '@time' => $elapsed,
       ]);
 
+      $batch_data['exceptions'] = $batch_data['exceptions'] ?? [];
       foreach ($batch_data['exceptions'] as $data) {
         // Setting NULL is so that the logger label resets each time, with the
         // current op.
-        $this->logger = NULL;
         $this->opInLoggerChannel = $data['op'] ?? '';
         $message = trim(($data['message'] ?? '') . "\n" . ($data['exception_trace'] ?? ''));
         if ($message) {
@@ -256,7 +237,6 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
         }
       }
 
-      $this->logger = NULL;
       $this->opInLoggerChannel = '';
     }
     if (FALSE === $batch_status) {

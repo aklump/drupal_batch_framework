@@ -16,9 +16,8 @@ use Psr\Log\LoggerInterface;
 /**
  * @covers \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase
  * @uses   \AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter
- * @uses   \AKlump\Drupal\BatchFramework\DrupalMode::get()
- * @uses   \AKlump\Drupal\BatchFramework\DrupalMode::set()
- * @uses   \AKlump\Drupal\BatchFramework\DrupalMode::isModern()
+ * @uses   \AKlump\Drupal\BatchFramework\DrupalMode
+ * @uses   \AKlump\Drupal\BatchFramework\Helpers\GetLogger
  */
 class DrupalBatchAPIBaseTest extends TestCase {
 
@@ -162,11 +161,6 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $this->assertGreaterThanOrEqual($expected_min_duration, $elapsed);
   }
 
-  public function testAutoDetectCanSniffLegacyDrupal() {
-    $this->assertSame(DrupalMode::LEGACY, (new Batch_AutoDetectDrupal())->getDrupalMode()
-      ->get());
-  }
-
   public function testSetTitle() {
     $this->expectNotToPerformAssertions();
     (new Batch_ModernDrupal())->setTitle('Lorem Ipsum');
@@ -203,13 +197,6 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $this->assertInstanceOf(LegacyDrupalLoggerAdapter::class, $logger);
   }
 
-  public function testSetThenGetLogger() {
-    $logger = $this->createMock(LoggerInterface::class);
-    $batch = new Batch_ModernDrupal();
-    $batch->setLogger($logger);
-    $this->assertSame($logger, $batch->getLogger());
-  }
-
   public function testSetInitMessage() {
     $this->expectNotToPerformAssertions();
     (new Batch_ModernDrupal())->setInitMessage('Getting starting...');
@@ -236,7 +223,7 @@ class_alias(Url::class, 'Drupal\Core\Url');
 class Batch_ModernDrupal extends DrupalBatchAPIBase {
 
   public function getDrupalMode(): DrupalMode {
-    return (new DrupalMode())->set(DrupalMode::MODERN);
+    return new DrupalMode(DrupalMode::MODERN);
   }
 
   public function getLabel(): string {
@@ -252,7 +239,7 @@ class Batch_ModernDrupal extends DrupalBatchAPIBase {
 class Batch_LegacyDrupal extends DrupalBatchAPIBase {
 
   public function getDrupalMode(): DrupalMode {
-    return (new DrupalMode())->set(DrupalMode::LEGACY);
+    return new DrupalMode(DrupalMode::LEGACY);
   }
 
   public function getLabel(): string {

@@ -3,13 +3,19 @@
 namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
+use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
 use AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase;
+use AKlump\Drupal\BatchFramework\DrupalMode;
 use AKlump\Drupal\BatchFramework\OperationInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
  * @covers \AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase
+ * @uses   \AKlump\Drupal\BatchFramework\DrupalMode
+ * @uses   \AKlump\Drupal\BatchFramework\Helpers\CreateLabelByClass
+ * @uses   \AKlump\Drupal\BatchFramework\Helpers\GetLogger
+ * @uses   \AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter
  */
 class OperationBaseTest extends TestCase {
 
@@ -31,12 +37,10 @@ class OperationBaseTest extends TestCase {
     $this->assertSame([], $op->getBatchFailures());
   }
 
-  public function testGetLogger() {
-    $batch_context = [];
-    $batch_context['logger'] = $this->createMock(LoggerInterface::class);
+  public function testGetLoggerReturnsCorrectBasedOnLegacyMode() {
     $op = new Operation();
-    $op->setBatchContext($batch_context);
-    $this->assertSame($batch_context['logger'], $op->getLogger());
+    $op->setDrupalMode(new DrupalMode(DrupalMode::LEGACY));
+    $this->assertInstanceOf(LegacyDrupalLoggerAdapter::class, $op->getLogger());
   }
 
   public function testGetDependencies() {

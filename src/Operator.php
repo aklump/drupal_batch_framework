@@ -2,6 +2,8 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use Drupal;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Psr\Log\LoggerInterface;
 
 final class Operator {
@@ -29,56 +31,56 @@ final class Operator {
    * @return void
    */
   public static function handleOperation(
-    OperationInterface $op,
+    OperationInterface $operation,
     int $max_execution = 30,
-    ?LoggerInterface $logger = NULL,
+    string $logger_channel = NULL,
     ?MessengerInterface $messenger = NULL,
     // $batch_context must always remain the last argument.  @see
     // app/web/core/includes/batch.inc:295
     array &$batch_context = []
   ) {
     self::initializeBatchContext($batch_context);
-    $batch_context['logger'] = $logger;
+    $batch_context['logger_channel'] = $logger_channel;
     $batch_context['messenger'] = $messenger;
-    $op->setBatchContext($batch_context);
+    $operation->setBatchContext($batch_context);
 
-    if ($op->getBatchFailures()) {
+    if ($operation->getBatchFailures()) {
       $batch_context['finished'] = 1;
 
       return;
     }
 
     try {
-      $unmet_dependencies = array_diff($op->getDependencies(), $batch_context['results']['operations_finished']);
+      $unmet_dependencies = array_diff($operation->getDependencies(), $batch_context['results']['operations_finished']);
       if ($unmet_dependencies) {
-        throw new UnmetDependencyException($op, $unmet_dependencies);
+        throw new UnmetDependencyException($operation, $unmet_dependencies);
       }
 
-      if (!$op->isInitialized()) {
-        $op->initialize();
+      if (!$operation->isInitialized()) {
+        $operation->initialize();
       }
       $end = time() + $max_execution;
       do {
         // We do not want to process until we've checked our progress ratio
         // first.  This is why we skip this here.
         if (isset($progress)) {
-          $op->process();
+          $operation->process();
           $batch_context['message'] = $batch_context['results']['current_activity_message'] ?? '';
         }
-        $batch_context['finished'] = $progress = $op->getProgressRatio();
+        $batch_context['finished'] = $progress = $operation->getProgressRatio();
         if (floatval(1) === $progress) {
-          $op->finish();
-          $batch_context['results']['operations_finished'][] = get_class($op);
+          $operation->finish();
+          $batch_context['results']['operations_finished'][] = get_class($operation);
         }
       } while (time() < $end && $batch_context['finished'] < 1);
     }
     catch (\Exception $exception) {
-      self::setBatchHasFailed($op, $batch_context, $exception);
+      self::setBatchHasFailed($operation, $batch_context, $exception);
       try {
-        $op->finish();
+        $operation->finish();
       }
       catch (\Exception $exception) {
-        self::setBatchHasFailed($op, $batch_context, $exception);
+        self::setBatchHasFailed($operation, $batch_context, $exception);
       }
       $batch_context['finished'] = 1;
     }
@@ -93,10 +95,10 @@ final class Operator {
     $batch_context['results']['exceptions'] = [];
   }
 
-  private static function setBatchHasFailed(OperationInterface $op, array &$batch_context, \Exception $exception) {
+  private static function setBatchHasFailed(OperationInterface $operation, array &$batch_context, \Exception $exception) {
     $batch_context['results']['exceptions'][] = [
-      'op_class' => get_class($op),
-      'op' => $op->getLabel(),
+      'op_class' => get_class($operation),
+      'op' => $operation->getLabel(),
       'message' => $exception->getMessage(),
       'exception_class' => get_class($exception),
       'exception_code' => $exception->getCode(),

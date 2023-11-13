@@ -104,13 +104,6 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
   public function setProgressMessage($progress_message): self;
 
   /**
-   * @param \Psr\Log\LoggerInterface $logger
-   *
-   * @return self
-   */
-  public function setLogger(LoggerInterface $logger): self;
-
-  /**
    * @param \AKlump\Drupal\BatchFramework\MessengerInterface $messenger
    *
    * @return self

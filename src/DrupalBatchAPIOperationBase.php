@@ -2,8 +2,10 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use AKlump\Drupal\BatchFramework\Helpers\GetLogger;
 use AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
 use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
+use Drupal;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Psr\Log\LoggerInterface;
 
@@ -29,7 +31,10 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
    * @inheritDoc
    */
   public function getLogger(): LoggerInterface {
-    return $this->context['logger'];
+    $mode = $this->getDrupalMode();
+    $channel = $this->context['logger_channel'] ?? $this->getLabel();
+
+    return (new GetLogger($mode))($channel);
   }
 
   /**

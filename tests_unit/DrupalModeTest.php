@@ -18,20 +18,18 @@ class DrupalModeTest extends TestCase {
     $this->assertSame($mode, $foo->getDrupalMode());
   }
 
-  public function testSetThenGet() {
-    $this->assertSame(DrupalMode::LEGACY, (new DrupalMode())->set(DrupalMode::LEGACY)
-      ->get());
-    $this->assertSame(DrupalMode::MODERN, (new DrupalMode())->set(DrupalMode::MODERN)
-      ->get());
+  public function testSetThenToString() {
+    $this->assertSame(DrupalMode::LEGACY, (string) (new DrupalMode(DrupalMode::LEGACY)));
+    $this->assertSame(DrupalMode::MODERN, (string) (new DrupalMode(DrupalMode::MODERN)));
   }
 
   public function testIsModern() {
-    $this->assertTrue((new DrupalMode())->set(DrupalMode::MODERN)->isModern());
+    $this->assertTrue((new DrupalMode(DrupalMode::MODERN))->isModern());
   }
 
-  public function testGetReturnsLegacy() {
-    $mode = (new DrupalMode())->get();
-    $this->assertSame(DrupalMode::LEGACY, $mode);
+  public function testAutoDetectsAsLegacy() {
+    $mode = (new DrupalMode());
+    $this->assertSame(DrupalMode::LEGACY, (string) $mode);
   }
 }
 
