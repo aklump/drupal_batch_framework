@@ -102,7 +102,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
           // TODO It's possible we should be sending classname, not instance to avoid serialization issues.  Needs more testing.
           $operation,
           3,
-          $this->getLogger(),
+          $this->getLoggerChannel(),
           $this->getMessenger(),
         ],
       ];
@@ -136,7 +136,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function getLogger(): LoggerInterface {
+  public function getLoggerChannel(): string {
     $op_label = '';
     if ($this->opInLoggerChannel) {
       $op_label = $this->opInLoggerChannel;
@@ -149,6 +149,15 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
     if ($op_label) {
       $channel .= ': ' . $op_label;
     }
+
+    return $channel;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getLogger(): LoggerInterface {
+    $channel = $this->getLoggerChannel();
 
     return (new GetLogger($this->getDrupalMode()))($channel);
   }

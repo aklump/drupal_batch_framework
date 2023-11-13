@@ -27,12 +27,16 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
     return [];
   }
 
+  public function getLoggerChannel(): string {
+    return $this->context['logger_channel'] ?? $this->getLabel();
+  }
+
   /**
    * @inheritDoc
    */
   public function getLogger(): LoggerInterface {
     $mode = $this->getDrupalMode();
-    $channel = $this->context['logger_channel'] ?? $this->getLabel();
+    $channel = $this->getLoggerChannel();
 
     return (new GetLogger($mode))($channel);
   }
