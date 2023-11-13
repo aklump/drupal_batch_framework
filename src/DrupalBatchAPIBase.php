@@ -175,7 +175,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * {@inheritdoc}
    */
   public function setTitle($title): self {
-    $this->batch['title'] = $title;
+    $this->batch['title'] = (string) $title;
 
     return $this;
   }
@@ -184,7 +184,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * {@inheritdoc}
    */
   public function setInitMessage($init_message): self {
-    $this->batch['init_message'] = $init_message;
+    $this->batch['init_message'] = (string) $init_message;
 
     return $this;
   }
@@ -193,7 +193,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * {@inheritdoc}
    */
   public function setProgressMessage($progress_message): self {
-    $this->batch['progress_message'] = $progress_message;
+    $this->batch['progress_message'] = (string) $progress_message;
 
     return $this;
   }
