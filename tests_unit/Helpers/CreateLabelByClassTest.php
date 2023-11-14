@@ -15,15 +15,15 @@ class CreateLabelByClassTest extends TestCase {
   public function dataFortestInvokeReturnsCorrectFloatValueProvider() {
     $tests = [];
     $tests[] = [
-      'Std Class',
+      'Std class',
       new \stdClass(),
     ];
     $tests[] = [
-      'Runtime Exception',
+      'Runtime exception',
       new \RuntimeException(),
     ];
     $tests[] = [
-      'Create Label By Class',
+      'Create label by class',
       new CreateLabelByClass(),
     ];
 

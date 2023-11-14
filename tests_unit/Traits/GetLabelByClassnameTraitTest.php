@@ -12,6 +12,6 @@ class GetLabelByClassnameTraitTest extends TestCase {
 
   public function testFoo() {
     $subject = new SomeOddClassName();
-    $this->assertSame('Some Odd Class Name', $subject->getLabel());
+    $this->assertSame('Some odd class name', $subject->getLabel());
   }
 }
