@@ -211,6 +211,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
 
     // Calculate the batch elapsed time.
     $elapsed = '(missing)';
+    // TODO Maybe we can ensure this gets set somewhere?
     if (isset($batch_data['start'])) {
       $batch_data['elapsed'] = time() - $batch_data['start'];
       $elapsed = $batch_data['elapsed'] . ' seconds';
