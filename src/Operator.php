@@ -19,8 +19,9 @@ final class Operator {
    *   The total seconds not to exceed.  The operation will be processed until
    *   $batch_context['finished'] === 1 or the $max_execution has been met.
    *   When this is being used by the Batch API, this becomes the UI refresh
-   *   rate, so you may want to set this lower, e.g. 3.  However when using this
-   *   with the Cron queue, it can be set much higher.
+   *   rate, so you may want to set this lower, e.g. 3.  Set this to zero and
+   *   \AKlump\Drupal\BatchFramework\OperationInterface::process will only be
+   *   called once.
    * @param \Psr\Log\LoggerInterface|NULL $logger
    *   Used for developer messages to be written to backend logs.  Not for the
    *   public user.
@@ -60,19 +61,24 @@ final class Operator {
         $operation->initialize();
       }
       $end = time() + $max_execution;
+      $processed = FALSE;
       do {
         // We do not want to process until we've checked our progress ratio
         // first.  This is why we skip this here.
         if (isset($progress)) {
+          $processed = TRUE;
           $operation->process();
           $batch_context['message'] = $batch_context['results']['current_activity_message'] ?? '';
         }
-        $batch_context['finished'] = $progress = $operation->getProgressRatio();
+        $progress = $operation->getProgressRatio();
+        $batch_context['finished'] = $progress;
         if (floatval(1) === $progress) {
           $operation->finish();
           $batch_context['results']['operations_finished'][] = get_class($operation);
         }
-      } while (time() < $end && $batch_context['finished'] < 1);
+        $times_up = time() >= $end;
+        $is_finished = $batch_context['finished'] === 1;
+      } while (!$is_finished && (!$processed || ($processed && !$times_up)));
     }
     catch (\Exception $exception) {
       self::setBatchHasFailed($operation, $batch_context, $exception);
