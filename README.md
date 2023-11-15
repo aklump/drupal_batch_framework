@@ -47,6 +47,8 @@ Suggested class structure within _my_module/_
         └── Operations
             ├── BarOperation.php
             └── BazOperation.php
+        ├── QueueDefinitions
+            └── FooQueue.php
 ```
 
 ## Batch Definition Example
@@ -266,4 +268,70 @@ public function handleFailedBatch(array &$batch_data): void {
   $m->addMessage(t("We've been notified.  Kindly give us a day or two to work it out."), MessengerInterface::TYPE_STATUS);
   $m->addMessage(t('Thank you for your patience.'), MessengerInterface::TYPE_STATUS);
 }
+```
+
+## Working With Cron Queues
+
+1. Create a queue definition by implementing `\AKlump\Drupal\BatchFramework\QueueDefinitionInterface`
+2. Implement `my_module_cron_queue_info` as shown below with your queue definition class.
+3. Fill the queue using an operations.
+4. Ensure cron is running.
+
+```php
+class FooQueue implements \AKlump\Drupal\BatchFramework\QueueDefinitionInterface {
+
+  use \AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
+
+  public function getName(): string {
+    return 'foo_queue';
+  }
+
+  public function getWorker(): callable {
+    return (new \AKlump\Drupal\BatchFramework\QueueWorker())->setLoggerChannel($this->getLoggerChannel());
+  }
+
+  public function getLoggerChannel(): string {
+    return $this->getLabel();
+  }
+  
+}
+
+```
+
+```php
+/**
+ * Implements hook_cron_queue_info().
+ */
+function my_module_cron_queue_info() {
+  $queue = new FooQueue();
+  $queues[$queue->getName()] = array(
+    'worker callback' => $queue->getWorker(),
+    // How many seconds cron should spend on this queue each cron run.
+    'time' => 10
+  );
+
+  return $queues;
+}
+```
+
+### Add an Item to the Queue
+
+The most important is to ensure you add the operation instance that will process the item to the queue item as `operation`.
+
+```php
+$queue_name = (new FooQueue())->getName();
+$queue = \DrupalQueue::get($queue_name);
+$queue->createQueue();
+
+$item = [
+  'operation' => new BarOperation(),
+  'key' => 'data',
+  'key2' => 'data2'
+];
+if (FALSE === $queue->createItem($item)) {
+  $logger_channel = (new FooQueue())->getLoggerChannel();
+  $logger = (new \AKlump\Drupal\BatchFramework\Helpers\GetLogger(new \AKlump\Drupal\BatchFramework\DrupalMode()))($logger_channel);
+  $logger->error("Failed to queue item");
+}
+
 ```

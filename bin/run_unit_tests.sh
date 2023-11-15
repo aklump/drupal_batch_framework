@@ -4,7 +4,7 @@ s="${BASH_SOURCE[0]}";[[ "$s" ]] || s="${(%):-%N}";while [ -h "$s" ];do d="$(cd 
 cd "$__DIR__/.."
 
 # https://phpunit.readthedocs.io/en/9.5/textui.html#command-line-options
-./vendor/bin/phpunit -c ./tests_unit/phpunit.xml "$@"
+#./vendor/bin/phpunit -c ./tests_unit/phpunit.xml "$@"
 #./vendor/bin/phpunit -c ./tests_unit/phpunit.xml --testdox "$@"
-#./vendor/bin/phpunit -c ./tests_unit/phpunit.xml "$@" --coverage-html=./reports
-#echo ./reports/index.html
+./vendor/bin/phpunit -c ./tests_unit/phpunit.xml "$@" --coverage-html=./reports
+echo ./reports/index.html
