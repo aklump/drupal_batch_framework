@@ -18,6 +18,7 @@ use Psr\Log\LoggerInterface;
  * @uses   \AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter
  * @uses   \AKlump\Drupal\BatchFramework\DrupalMode
  * @uses   \AKlump\Drupal\BatchFramework\Helpers\GetLogger
+ * @uses   \AKlump\Drupal\BatchFramework\Helpers\GetMessenger
  */
 class DrupalBatchAPIBaseTest extends TestCase {
 

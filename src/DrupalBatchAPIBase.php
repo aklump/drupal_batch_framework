@@ -2,9 +2,9 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
-use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
-use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalMessengerAdapter;
+use AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel;
 use AKlump\Drupal\BatchFramework\Helpers\GetLogger;
+use AKlump\Drupal\BatchFramework\Helpers\GetMessenger;
 use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use Drupal;
 use Drupal\Core\Messenger\Messenger;
@@ -50,12 +50,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    */
   public function getMessenger(): MessengerInterface {
     if (!isset($this->messenger)) {
-      if ($this->getDrupalMode()->isModern()) {
-        $this->messenger = new DrupalMessengerAdapter();
-      }
-      else {
-        $this->messenger = new LegacyDrupalMessengerAdapter();
-      }
+      $this->messenger = (new GetMessenger($this->getDrupalMode()))();
     }
 
     return $this->messenger;
@@ -137,20 +132,12 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * {@inheritdoc}
    */
   public function getLoggerChannel(): string {
-    $op_label = '';
+    $op_label = $this->op ?? '';
     if ($this->opInLoggerChannel) {
       $op_label = $this->opInLoggerChannel;
     }
-    elseif ($this->op) {
-      $op_label = $this->op->getLabel();
-    }
 
-    $channel = $this->getLabel();
-    if ($op_label) {
-      $channel .= ': ' . $op_label;
-    }
-
-    return $channel;
+    return (new CreateLoggingChannel())($this->getLabel(), $op_label);
   }
 
   /**

@@ -10,7 +10,9 @@ use Psr\Log\LoggerInterface;
 /**
  * Get the correct logger by drupal mode.
  */
-class GetLogger {
+final class GetLogger {
+
+  private DrupalMode $mode;
 
   public function __construct(DrupalMode $mode) {
     $this->mode = $mode;

@@ -51,12 +51,14 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
   /**
    * @inheritDoc
    */
-  public function setBatchContext(array &$batch_context) {
+  public function setBatchContext(array &$batch_context): self {
     $this->context = &$batch_context;
     $batch_context += ['sandbox' => [], 'results' => []];
     $batch_context['results'] += ['shared' => []];
     $this->sb = &$batch_context['sandbox'];
     $this->shared = &$batch_context['results']['shared'];
+
+    return $this;
   }
 
   /**

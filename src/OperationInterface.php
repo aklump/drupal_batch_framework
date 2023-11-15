@@ -33,9 +33,9 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    *
    * @param array &$batch_context
    *
-   * @return mixed
+   * @return \AKlump\Drupal\BatchFramework\OperationInterface
    */
-  public function setBatchContext(array &$batch_context);
+  public function setBatchContext(array &$batch_context): self;
 
   /**
    * Get batch failures.
