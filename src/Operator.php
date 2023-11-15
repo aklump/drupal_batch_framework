@@ -50,7 +50,7 @@ final class Operator {
 
       return;
     }
-
+    $finish_called = FALSE;
     try {
       $unmet_dependencies = array_diff($operation->getDependencies(), $batch_context['results']['operations_finished']);
       if ($unmet_dependencies) {
@@ -73,17 +73,19 @@ final class Operator {
         $progress = $operation->getProgressRatio();
         $batch_context['finished'] = $progress;
         if (floatval(1) === $progress) {
+          $finish_called = TRUE;
           $operation->finish();
           $batch_context['results']['operations_finished'][] = get_class($operation);
         }
         $times_up = time() >= $end;
-        $is_finished = $batch_context['finished'] === 1;
-      } while (!$is_finished && (!$processed || ($processed && !$times_up)));
+      } while ($progress < 1 && (!$processed || ($processed && !$times_up)));
     }
     catch (\Exception $exception) {
       self::setBatchHasFailed($operation, $batch_context, $exception);
       try {
-        $operation->finish();
+        if (!$finish_called) {
+          $operation->finish();
+        }
       }
       catch (\Exception $exception) {
         self::setBatchHasFailed($operation, $batch_context, $exception);
