@@ -83,7 +83,7 @@ class OperatorTest extends TestCase {
       ->willReturnCallback(function () {
         throw new \RuntimeException();
       });
-    Operator::handleOperation($operation);
+    Operator::handleOperation($operation, 3);
   }
 
   public function dataFortestFinishIsCalledAfterMethodThrowsProvider() {
@@ -107,7 +107,7 @@ class OperatorTest extends TestCase {
         throw new \RuntimeException();
       });
     $operation->expects($this->once())->method('finish');
-    Operator::handleOperation($operation);
+    Operator::handleOperation($operation, 3);
   }
 
   public function testInitializeIsNotCalledWhenIsInitializedIsTrue() {
@@ -117,7 +117,7 @@ class OperatorTest extends TestCase {
       ->willReturn(TRUE);
     $operation->expects($this->never())->method('initialize');
     $operation->method('getProgressRatio')->willReturn(1.0);
-    Operator::handleOperation($operation);
+    Operator::handleOperation($operation, 3);
   }
 
   public function testOperatorStopsAfterMaxExecutionIsReachedEvenIfNotFinished() {

@@ -2,8 +2,8 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use AKlump\Drupal\BatchFramework\Helpers\CreateLabelByClass;
 use AKlump\Drupal\BatchFramework\Helpers\GetLogger;
-use AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
 use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use Drupal;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
@@ -11,7 +11,6 @@ use Psr\Log\LoggerInterface;
 
 abstract class DrupalBatchAPIOperationBase implements OperationInterface {
 
-  use GetLabelByClassnameTrait;
   use HasDrupalModeTrait;
 
   protected array $context = [];
@@ -22,6 +21,14 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
    * @var array This is shared across all operations.
    */
   protected array $shared = [];
+
+  /**
+   * @return string
+   *   A string generated from the class name.
+   */
+  public function getLabel(): string {
+    return (new CreateLabelByClass())($this);
+  }
 
   public function getDependencies(): array {
     return [];

@@ -4,7 +4,6 @@ namespace AKlump\Drupal\BatchFramework;
 
 use Drupal;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Psr\Log\LoggerInterface;
 
 final class Operator {
 
@@ -15,13 +14,15 @@ final class Operator {
    * @endcode
    *
    * @param \AKlump\Drupal\BatchFramework\OperationInterface $op
-   * @param int $max_execution
+   * @param int $timeout
    *   The total seconds not to exceed.  The operation will be processed until
-   *   $batch_context['finished'] === 1 or the $max_execution has been met.
+   *   $batch_context['finished'] === 1 or the $timeout has been met.
    *   When this is being used by the Batch API, this becomes the UI refresh
    *   rate, so you may want to set this lower, e.g. 3.  Set this to zero and
    *   \AKlump\Drupal\BatchFramework\OperationInterface::process will only be
-   *   called once.
+   *   called once.  For Queue operations you should set it higher, e.g. 60 to
+   *   prevent items getting stuck in the queue simply because the operation
+   *   didn't have enough time to finish.
    * @param \Psr\Log\LoggerInterface|NULL $logger
    *   Used for developer messages to be written to backend logs.  Not for the
    *   public user.
@@ -33,7 +34,7 @@ final class Operator {
    */
   public static function handleOperation(
     OperationInterface $operation,
-    int $max_execution = 30,
+    int $timeout,
     string $logger_channel = NULL,
     ?MessengerInterface $messenger = NULL,
     // $batch_context must always remain the last argument.  @see
@@ -60,7 +61,7 @@ final class Operator {
       if (!$operation->isInitialized()) {
         $operation->initialize();
       }
-      $end = time() + $max_execution;
+      $end = time() + $timeout;
       $processed = FALSE;
       do {
         // We do not want to process until we've checked our progress ratio

@@ -200,7 +200,7 @@ class BarController extends ControllerBase {
     $max_execution_in_seconds = 60;
     Operator::handleOperation(
       new BarOperation(date_create(), $account),
-      $max_execution_in_seconds,
+      $timeout_in_seconds,
       \Drupal::logger('conversions'),
       new DrupalMessengerAdapter(),
     );
@@ -324,7 +324,7 @@ $queue = \DrupalQueue::get($queue_name);
 $queue->createQueue();
 
 $item = [
-  'operation' => new BarOperation(),
+  \AKlump\Drupal\BatchFramework\QueueItemInterface::OPERATION => new BarOperation(),
   'key' => 'data',
   'key2' => 'data2'
 ];
@@ -332,6 +332,96 @@ if (FALSE === $queue->createItem($item)) {
   $logger_channel = (new FooQueue())->getLoggerChannel();
   $logger = (new \AKlump\Drupal\BatchFramework\Helpers\GetLogger(new \AKlump\Drupal\BatchFramework\DrupalMode()))($logger_channel);
   $logger->error("Failed to queue item");
+}
+
+```
+
+### The Operation Class
+
+* If the operation throws any exception the item remains in the queue.
+* If the operation times out the item remains in the queue.  
+* If the operation returns `getProgressRatio()` < 1 on the final pass, the item remains in the queue.
+* The queue item is available in `$this->context['results'][QueueWorkerInterface::ITEMS]`; see `CronOperation::process`
+
+```php
+<?php
+
+namespace Drupal\ova_user_export\Batch\Operations;
+
+use AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase;
+use AKlump\Drupal\BatchFramework\Helpers\GetProgressRatio;
+use AKlump\Drupal\BatchFramework\QueueWorker;
+use Drupal\ova_user_export\Mail\EmailEventObjectId;
+use Drupal\ova_user_export\Mail\GetTemplateByMessage;
+use Drupal\ovagraph_core\UserActivity\Event;
+use Drupal\ovagraph_core\UserActivity\EventStorage;
+
+class CronOperation extends DrupalBatchAPIOperationBase {
+
+  private bool $recordEvents;
+
+  public function __construct(bool $record_events = TRUE) {
+    $this->recordEvents = $record_events;
+  }
+
+  public function isInitialized(): bool {
+    return isset($this->sb['items']);
+  }
+
+  public function initialize(): void {
+    $this->sb['items'] = $this->context['results'][QueueWorkerInterface::ITEMS];
+    $this->sb['total'] = count($this->sb['items']);
+  }
+
+  public function getProgressRatio(): float {
+    return (new GetProgressRatio())($this->sb['total'], $this->sb['items']);
+  }
+
+  public function process(): void {
+    $item = array_pop($this->sb['items']);
+
+    // TODO Implement throttle mechanism, e.g no more than 100 emails per hour.
+
+    if (isset($item['uid'])) {
+      $user = user_load($item['uid']);
+    }
+    else {
+      $user = user_load_by_mail($item['send_to']);
+    }
+    if (!$user) {
+      $this->getLogger()
+        ->error('Email not sent; cannot locate user by @mail', ['@mail' => $item['send_to']]);
+
+      return;
+    }
+
+    $template_class = $item['template_class'];
+    /** @var \Drupal\ova_user_export\Mail\BulkEmailInterface $template */
+    $template = new $template_class();
+    $message = drupal_mail('ova_user_export', $template->getDrupalMailKey(), $item['send_to'], LANGUAGE_NONE, [
+      GetTemplateByMessage::KEY => $template_class,
+      EmailEventObjectId::KEY => $item[EmailEventObjectId::KEY],
+    ]);
+
+    if (isset($message['result']) && TRUE === $message['result']) {
+      $event_type = $template->getUserEventTypeSent();
+      if ($event_type) {
+        $identifier = new EmailEventObjectId($message);
+        $object_id = $identifier->get();
+        if (NULL === $object_id) {
+          $object_id = $identifier::createId($message['to'], $message['subject']);
+          $identifier->set($object_id);
+        }
+        if ($this->recordEvents) {
+          $event = new Event($event_type, $user->uid, $object_id);
+          (new EventStorage())->save($event);
+        }
+      }
+    }
+
+    $this->shared['drupal_mail'][] = $message;
+  }
+
 }
 
 ```
