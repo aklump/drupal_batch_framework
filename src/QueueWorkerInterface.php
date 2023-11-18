@@ -14,4 +14,15 @@ interface QueueWorkerInterface {
    */
   public function __invoke($queue_item): void;
 
+  /**
+   * @param int $timeout
+   *
+   * @return self
+   *
+   * @see \AKlump\Drupal\BatchFramework\Operator::handleOperation
+   */
+  public function setTimeout(int $timeout): self;
+
+  public function setLoggerChannel(string $channel): self;
+
 }
