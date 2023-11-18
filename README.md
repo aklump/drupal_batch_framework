@@ -339,7 +339,7 @@ if (FALSE === $queue->createItem($item)) {
 ### The Operation Class
 
 * If the operation throws any exception the item remains in the queue.
-* If the operation times out the item remains in the queue.  
+* If the operation times out the item remains in the queue.
 * If the operation returns `getProgressRatio()` < 1 on the final pass, the item remains in the queue.
 * The queue item is available in `$this->context['results'][QueueWorkerInterface::ITEMS]`; see `CronOperation::process`
 
@@ -424,4 +424,26 @@ class CronOperation extends DrupalBatchAPIOperationBase {
 
 }
 
+```
+
+## Rate Limits on Cron Queue
+
+To limit the speed at which items are processed in the cron queue you should use an instance of `\AKlump\Drupal\BatchFramework\Throttle\GateInterface`.
+
+```php
+class BulkMailQueue implements QueueDefinitionInterface {
+  public function getWorker(): callable {
+  
+    // 1. Create a gate that will limit batch flow to 1 per 5 minutes.
+    $gate = new \AKlump\Drupal\BatchFramework\Throttle\DrupalGate(
+      $this->getName(),
+      new \AKlump\Drupal\BatchFramework\Throttle\RateLimit(1, 'PT5M')
+    );
+
+    return (new QueueWorker())
+      // 2. Pass the gate to the worker.
+      ->setRateLimitGate($gate)
+      ->setLoggerChannel($this->getLoggerChannel());
+  }
+}  
 ```

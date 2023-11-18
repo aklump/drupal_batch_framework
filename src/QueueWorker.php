@@ -4,6 +4,8 @@ namespace AKlump\Drupal\BatchFramework;
 
 use AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel;
 use AKlump\Drupal\BatchFramework\Helpers\GetMessenger;
+use AKlump\Drupal\BatchFramework\Throttle\GateInterface;
+use AKlump\Drupal\BatchFramework\Throttle\RateLimitThresholdException;
 use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use InvalidArgumentException;
 
@@ -18,6 +20,11 @@ class QueueWorker implements QueueWorkerInterface {
    */
   protected int $timeout = 60;
 
+  /**
+   * @var \AKlump\Drupal\BatchFramework\Throttle\GateInterface
+   */
+  protected GateInterface $gate;
+
   public function setTimeout(int $timeout): self {
     $this->timeout = $timeout;
 
@@ -30,6 +37,10 @@ class QueueWorker implements QueueWorkerInterface {
    * @see \AKlump\Drupal\BatchFramework\QueueDefinitionInterface::getWorker
    */
   public function __invoke($queue_item): void {
+    if (isset($this->gate) && $this->gate->isClosed()) {
+      throw new RateLimitThresholdException();
+    }
+
     /** @var \AKlump\Drupal\BatchFramework\OperationInterface $operation */
     $operation = $queue_item[QueueItemInterface::OPERATION] ?? NULL;
     if (empty($operation)) {
@@ -62,6 +73,10 @@ class QueueWorker implements QueueWorkerInterface {
       $e = reset($batch_context['results']['exceptions']);
       throw new $e['exception_class']($e['message'], $e['exception_code']);
     }
+
+    if (isset($this->gate)) {
+      $this->gate->allowOneThrough();
+    }
   }
 
   /**
@@ -76,6 +91,12 @@ class QueueWorker implements QueueWorkerInterface {
    */
   public function setLoggerChannel(string $channel): self {
     $this->loggerChannel = $channel;
+
+    return $this;
+  }
+
+  public function setRateLimitGate(GateInterface $gate): self {
+    $this->gate = $gate;
 
     return $this;
   }

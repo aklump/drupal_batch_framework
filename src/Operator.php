@@ -2,6 +2,7 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
 use Drupal;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 
@@ -26,7 +27,7 @@ final class Operator {
    * @param \Psr\Log\LoggerInterface|NULL $logger
    *   Used for developer messages to be written to backend logs.  Not for the
    *   public user.
-   * @param \AKlump\Drupal\BatchFramework\MessengerInterface|NULL $messenger
+   * @param \AKlump\Drupal\BatchFramework\Adapters\MessengerInterface|NULL $messenger
    *   Used to pass messages to the public user when the UI allows for it.
    * @param array &$batch_context
    *

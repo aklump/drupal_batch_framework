@@ -1,6 +1,6 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework;
+namespace AKlump\Drupal\BatchFramework\Adapters;
 
 /**
  * Add messages that will be shown to the user.

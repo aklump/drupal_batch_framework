@@ -2,6 +2,8 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use AKlump\Drupal\BatchFramework\Throttle\GateInterface;
+
 interface QueueWorkerInterface {
 
   const ITEMS = 'queue_worker_items';
@@ -24,5 +26,14 @@ interface QueueWorkerInterface {
   public function setTimeout(int $timeout): self;
 
   public function setLoggerChannel(string $channel): self;
+
+  /**
+   * Do not allow this worker to operate any faster than the rate limit.
+   *
+   * @param \AKlump\Drupal\BatchFramework\Throttle\GateInterface
+   *
+   * @return self
+   */
+  public function setRateLimitGate(GateInterface $gate): self;
 
 }

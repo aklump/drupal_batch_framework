@@ -2,8 +2,6 @@
 
 namespace AKlump\Drupal\BatchFramework\Adapters;
 
-use AKlump\Drupal\BatchFramework\MessengerInterface;
-
 /**
  * Adapts \Drupal::messenger() to implement \AKlump\Drupal\BatchFramework\MessengerInterface
  */

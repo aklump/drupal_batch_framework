@@ -4,9 +4,9 @@ namespace AKlump\Drupal\BatchFramework\Helpers;
 
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalMessengerAdapter;
+use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
 use AKlump\Drupal\BatchFramework\DrupalMode;
-use AKlump\Drupal\BatchFramework\MessengerInterface;
-use \Drupal;
+use Drupal;
 
 /**
  * Get the correct logger by drupal mode.

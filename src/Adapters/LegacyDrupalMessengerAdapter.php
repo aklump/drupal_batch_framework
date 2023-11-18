@@ -2,7 +2,6 @@
 
 namespace AKlump\Drupal\BatchFramework\Adapters;
 
-use AKlump\Drupal\BatchFramework\MessengerInterface;
 use function drupal_set_message;
 
 /**

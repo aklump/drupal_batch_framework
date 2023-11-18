@@ -2,7 +2,7 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
-use Psr\Log\LoggerInterface;
+use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
 
 interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInterface {
 
@@ -104,7 +104,7 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
   public function setProgressMessage($progress_message): self;
 
   /**
-   * @param \AKlump\Drupal\BatchFramework\MessengerInterface $messenger
+   * @param \AKlump\Drupal\BatchFramework\Adapters\MessengerInterface $messenger
    *
    * @return self
    */

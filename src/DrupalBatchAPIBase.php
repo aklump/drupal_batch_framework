@@ -2,6 +2,7 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
 use AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel;
 use AKlump\Drupal\BatchFramework\Helpers\GetLogger;
 use AKlump\Drupal\BatchFramework\Helpers\GetMessenger;
