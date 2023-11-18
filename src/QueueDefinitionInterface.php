@@ -25,4 +25,10 @@ interface QueueDefinitionInterface {
    */
   public function getWorker(): callable;
 
+  /**
+   * @return string
+   *   If this queue has an management URL return it here otherwise return ''.
+   */
+  public function getAdminUrl(): string;
+
 }
