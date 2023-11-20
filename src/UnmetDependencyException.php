@@ -2,6 +2,8 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
+use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
+
 /**
  * When a batch operation fails throw this exception:
  *

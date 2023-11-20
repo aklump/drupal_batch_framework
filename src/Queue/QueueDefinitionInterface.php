@@ -1,6 +1,6 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework;
+namespace AKlump\Drupal\BatchFramework\Queue;
 
 interface QueueDefinitionInterface {
 
@@ -21,7 +21,7 @@ interface QueueDefinitionInterface {
    *   Receives a queue item for processing
    * @throws \Exception If the item should remain in the queue.
    *
-   * @see \AKlump\Drupal\BatchFramework\QueueWorker
+   * @see \AKlump\Drupal\BatchFramework\Queue\QueueWorker
    */
   public function getWorker(): callable;
 

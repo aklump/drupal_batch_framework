@@ -2,7 +2,7 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
-use \Drupal;
+use Drupal;
 
 class DrupalMode {
 

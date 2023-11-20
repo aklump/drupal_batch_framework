@@ -4,14 +4,13 @@ namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
-use AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase;
+use AKlump\Drupal\BatchFramework\Batch\DrupalBatchAPIOperationBase;
+use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
 use AKlump\Drupal\BatchFramework\DrupalMode;
-use AKlump\Drupal\BatchFramework\OperationInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 
 /**
- * @covers \AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase
+ * @covers \AKlump\Drupal\BatchFramework\Batch\DrupalBatchAPIOperationBase
  * @uses   \AKlump\Drupal\BatchFramework\DrupalMode
  * @uses   \AKlump\Drupal\BatchFramework\Helpers\CreateLabelByClass
  * @uses   \AKlump\Drupal\BatchFramework\Helpers\GetLogger

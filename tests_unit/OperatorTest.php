@@ -2,13 +2,13 @@
 
 namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 
-use AKlump\Drupal\BatchFramework\OperationInterface;
-use AKlump\Drupal\BatchFramework\Operator;
+use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
+use AKlump\Drupal\BatchFramework\Batch\Operator;
 use AKlump\Drupal\BatchFramework\UnmetDependencyException;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \AKlump\Drupal\BatchFramework\Operator
+ * @covers \AKlump\Drupal\BatchFramework\Batch\Operator
  * @uses   \AKlump\Drupal\BatchFramework\UnmetDependencyException
  */
 class OperatorTest extends TestCase {

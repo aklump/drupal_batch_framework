@@ -2,8 +2,8 @@
 
 namespace AKlump\Drupal\BatchFramework\Tests\Unit\Helpers;
 
+use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
 use AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel;
-use AKlump\Drupal\BatchFramework\OperationInterface;
 use PHPUnit\Framework\TestCase;
 
 /**

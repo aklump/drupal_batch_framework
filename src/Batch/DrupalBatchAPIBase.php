@@ -1,6 +1,6 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework;
+namespace AKlump\Drupal\BatchFramework\Batch;
 
 use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
 use AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel;
@@ -33,7 +33,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
 
   protected ?string $batchProcessingPageUrl = NULL;
 
-  private ?OperationInterface $op = NULL;
+  private ?\AKlump\Drupal\BatchFramework\Batch\OperationInterface $op = NULL;
 
   private string $opInLoggerChannel = '';
 

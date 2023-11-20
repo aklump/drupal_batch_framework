@@ -1,6 +1,6 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework;
+namespace AKlump\Drupal\BatchFramework\Queue;
 
 use AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel;
 use AKlump\Drupal\BatchFramework\Helpers\GetMessenger;
@@ -34,14 +34,14 @@ class QueueWorker implements QueueWorkerInterface {
   protected string $loggerChannel = '';
 
   /**
-   * @see \AKlump\Drupal\BatchFramework\QueueDefinitionInterface::getWorker
+   * @see \AKlump\Drupal\BatchFramework\Queue\QueueDefinitionInterface::getWorker
    */
   public function __invoke($queue_item): void {
     if (isset($this->gate) && $this->gate->isClosed()) {
       throw new RateLimitThresholdException();
     }
 
-    /** @var \AKlump\Drupal\BatchFramework\OperationInterface $operation */
+    /** @var \AKlump\Drupal\BatchFramework\Batch\OperationInterface $operation */
     $operation = $queue_item[QueueItemInterface::OPERATION] ?? NULL;
     if (empty($operation)) {
       throw new InvalidArgumentException(sprintf('Cannot process this item due to missing $item["%s"], which should be an instance of %s.', QueueItemInterface::OPERATION, OperationInterface::class));
@@ -53,7 +53,7 @@ class QueueWorker implements QueueWorkerInterface {
     $batch_context['results'][QueueWorkerInterface::ITEMS] = [$queue_item];
     $logger_channel = (new CreateLoggingChannel())($this->loggerChannel, $operation);
 
-    Operator::handleOperation(
+    \AKlump\Drupal\BatchFramework\Batch\Operator::handleOperation(
       $operation,
       $this->timeout,
       $logger_channel,
@@ -87,7 +87,7 @@ class QueueWorker implements QueueWorkerInterface {
    *
    * @return $this
    *
-   * @see \AKlump\Drupal\BatchFramework\QueueDefinitionInterface::getLoggerChannel()
+   * @see \AKlump\Drupal\BatchFramework\Queue\QueueDefinitionInterface::getLoggerChannel()
    */
   public function setLoggerChannel(string $channel): self {
     $this->loggerChannel = $channel;

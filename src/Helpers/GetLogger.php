@@ -2,9 +2,9 @@
 
 namespace AKlump\Drupal\BatchFramework\Helpers;
 
-use AKlump\Drupal\BatchFramework\DrupalMode;
-use \Drupal;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
+use AKlump\Drupal\BatchFramework\DrupalMode;
+use Drupal;
 use Psr\Log\LoggerInterface;
 
 /**

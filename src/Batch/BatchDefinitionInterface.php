@@ -1,8 +1,10 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework;
+namespace AKlump\Drupal\BatchFramework\Batch;
 
 use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
+use AKlump\Drupal\BatchFramework\HasLoggerInterface;
+use AKlump\Drupal\BatchFramework\HasMessengerInterface;
 
 interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInterface {
 
@@ -15,7 +17,7 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
   /**
    * Get the operations that make up this batch.
    *
-   * @return \AKlump\Drupal\BatchFramework\OperationInterface[]
+   * @return \AKlump\Drupal\BatchFramework\Batch\OperationInterface[]
    */
   public function getOperations(): array;
 

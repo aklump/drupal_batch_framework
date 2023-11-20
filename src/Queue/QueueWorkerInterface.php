@@ -1,6 +1,6 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework;
+namespace AKlump\Drupal\BatchFramework\Queue;
 
 use AKlump\Drupal\BatchFramework\Throttle\GateInterface;
 
@@ -11,7 +11,7 @@ interface QueueWorkerInterface {
   /**
    * @return void
    *
-   * @throws \AKlump\Drupal\BatchFramework\QueueWorkerTimeoutException If the
+   * @throws \AKlump\Drupal\BatchFramework\Queue\QueueWorkerTimeoutException If the
    * timeout is reached before the operation has reported being finished.
    */
   public function __invoke($queue_item): void;
@@ -21,7 +21,7 @@ interface QueueWorkerInterface {
    *
    * @return self
    *
-   * @see \AKlump\Drupal\BatchFramework\Operator::handleOperation
+   * @see \AKlump\Drupal\BatchFramework\Batch\Operator::handleOperation
    */
   public function setTimeout(int $timeout): self;
 

@@ -2,13 +2,13 @@
 
 namespace AKlump\Drupal\BatchFramework\Helpers;
 
-use AKlump\Drupal\BatchFramework\OperationInterface;
+use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
 
 class CreateLoggingChannel {
 
   /**
    * @param string $base_channel
-   * @param string|\AKlump\Drupal\BatchFramework\OperationInterface $operation
+   * @param string|\AKlump\Drupal\BatchFramework\Batch\OperationInterface $operation
    *
    * @return string
    */

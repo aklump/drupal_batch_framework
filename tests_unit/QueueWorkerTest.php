@@ -2,18 +2,18 @@
 
 namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 
-use AKlump\Drupal\BatchFramework\OperationInterface;
-use AKlump\Drupal\BatchFramework\QueueItemInterface;
-use AKlump\Drupal\BatchFramework\QueueWorker;
-use AKlump\Drupal\BatchFramework\QueueWorkerTimeoutException;
+use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
+use AKlump\Drupal\BatchFramework\Queue\QueueItemInterface;
+use AKlump\Drupal\BatchFramework\Queue\QueueWorker;
+use AKlump\Drupal\BatchFramework\Queue\QueueWorkerTimeoutException;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \AKlump\Drupal\BatchFramework\QueueWorker
+ * @covers \AKlump\Drupal\BatchFramework\Queue\QueueWorker
  * @uses   \AKlump\Drupal\BatchFramework\DrupalMode
  * @uses   \AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel
  * @uses   \AKlump\Drupal\BatchFramework\Helpers\GetMessenger
- * @uses   \AKlump\Drupal\BatchFramework\Operator
+ * @uses   \AKlump\Drupal\BatchFramework\Batch\Operator
  */
 class QueueWorkerTest extends TestCase {
 

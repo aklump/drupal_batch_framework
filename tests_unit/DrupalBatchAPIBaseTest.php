@@ -6,15 +6,15 @@ use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
-use AKlump\Drupal\BatchFramework\DrupalBatchAPIBase;
+use AKlump\Drupal\BatchFramework\Batch\DrupalBatchAPIBase;
+use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
 use AKlump\Drupal\BatchFramework\DrupalMode;
-use AKlump\Drupal\BatchFramework\OperationInterface;
 use Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * @covers \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase
+ * @covers \AKlump\Drupal\BatchFramework\Batch\DrupalBatchAPIBase
  * @uses   \AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter
  * @uses   \AKlump\Drupal\BatchFramework\DrupalMode
  * @uses   \AKlump\Drupal\BatchFramework\Helpers\GetLogger

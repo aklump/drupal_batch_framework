@@ -1,6 +1,6 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework;
+namespace AKlump\Drupal\BatchFramework\Batch;
 
 use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
 use Drupal;
@@ -14,7 +14,7 @@ final class Operator {
    * @code
    * @endcode
    *
-   * @param \AKlump\Drupal\BatchFramework\OperationInterface $op
+   * @param \AKlump\Drupal\BatchFramework\Batch\OperationInterface $op
    * @param int $timeout
    *   The total seconds not to exceed.  The operation will be processed until
    *   $batch_context['finished'] === 1 or the $timeout has been met.
@@ -56,7 +56,7 @@ final class Operator {
     try {
       $unmet_dependencies = array_diff($operation->getDependencies(), $batch_context['results']['operations_finished']);
       if ($unmet_dependencies) {
-        throw new UnmetDependencyException($operation, $unmet_dependencies);
+        throw new \AKlump\Drupal\BatchFramework\UnmetDependencyException($operation, $unmet_dependencies);
       }
 
       if (!$operation->isInitialized()) {

@@ -1,11 +1,11 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework;
+namespace AKlump\Drupal\BatchFramework\Batch;
 
 /**
  * Batch operation classes may use this interface.
  */
-interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
+interface OperationInterface extends \AKlump\Drupal\BatchFramework\HasLoggerInterface, \AKlump\Drupal\BatchFramework\HasMessengerInterface {
 
   /**
    * @return string
@@ -101,7 +101,7 @@ interface OperationInterface extends HasLoggerInterface, HasMessengerInterface {
    *
    * @return void
    *
-   * @see \AKlump\Drupal\BatchFramework\BatchDefinitionInterface::setProgressMessage
+   * @see \AKlump\Drupal\BatchFramework\Batch\BatchDefinitionInterface::setProgressMessage
    */
   public function setCurrentActivityMessage(string $message, array $context = []): void;
 

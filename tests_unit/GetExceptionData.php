@@ -2,7 +2,7 @@
 
 namespace AKlump\Drupal\BatchFramework\Tests\Unit;
 
-use AKlump\Drupal\BatchFramework\OperationInterface;
+use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
 use Exception;
 
 class GetExceptionData {
