@@ -273,9 +273,10 @@ public function handleFailedBatch(array &$batch_data): void {
 ## Working With Cron Queues
 
 1. Create a queue definition by implementing `\AKlump\Drupal\BatchFramework\QueueDefinitionInterface`
-2. Implement `my_module_cron_queue_info` as shown below with your queue definition class.
-3. Fill the queue using an operations.
-4. Ensure cron is running.
+3. Do implement `hook_cron`  as shown below with your queue definition class.
+4. Fill the queue using an operations.
+5. Ensure cron is running.
+2. Note this strategy does not use `hook_cron_queue_info`.
 
 ```php
 class FooQueue implements \AKlump\Drupal\BatchFramework\QueueDefinitionInterface {
@@ -302,15 +303,10 @@ class FooQueue implements \AKlump\Drupal\BatchFramework\QueueDefinitionInterface
 /**
  * Implements hook_cron_queue_info().
  */
-function my_module_cron_queue_info() {
-  $queue = new FooQueue();
-  $queues[$queue->getName()] = array(
-    'worker callback' => $queue->getWorker(),
-    // How many seconds cron should spend on this queue each cron run.
-    'time' => 10
-  );
-
-  return $queues;
+function my_module_cron_() {
+  (new CronCreateJobFromQueue(new FooQueue()))
+    ->setMaxTime(30)
+    ->do();
 }
 ```
 

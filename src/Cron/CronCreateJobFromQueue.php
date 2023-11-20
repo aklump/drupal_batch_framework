@@ -11,21 +11,31 @@ use DrupalQueue;
 use Exception;
 use InvalidArgumentException;
 
-class CronQueueJob implements CronJobInterface {
+class CronCreateJobFromQueue
+  implements CronJobInterface {
 
   use HasDrupalModeTrait;
 
   private int $time = 30;
 
-  public function do(QueueDefinitionInterface $queue_definition): void {
-    $name = $queue_definition->getName();
+  /**
+   * @var \AKlump\Drupal\BatchFramework\Queue\QueueDefinitionInterface
+   */
+  private QueueDefinitionInterface $definition;
+
+  public function __construct(QueueDefinitionInterface $queue_definition) {
+    $this->definition = $queue_definition;
+  }
+
+  public function do(): void {
+    $name = $this->definition->getName();
     $queue = DrupalQueue::get($name);
     $queue->createQueue();
     if (!$queue->numberOfItems()) {
       return;
     }
 
-    $callback = $queue_definition->getWorker();
+    $callback = $this->definition->getWorker();
     $end = time() + $this->getMaxTime();
     while (time() < $end && ($item = $queue->claimItem())) {
       try {
@@ -42,7 +52,7 @@ class CronQueueJob implements CronJobInterface {
         $queue->releaseItem($item);
       }
       catch (Exception $e) {
-        $channel = $queue_definition->getLoggerChannel();
+        $channel = $this->definition->getLoggerChannel();
         (new GetLogger($this->getDrupalMode()))($channel)->error($e->getMessage());
       }
     }

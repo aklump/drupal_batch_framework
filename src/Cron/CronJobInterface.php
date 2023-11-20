@@ -17,4 +17,7 @@ interface CronJobInterface {
    */
 
   public function getMaxTime(): int;
+
+  public function do(): void;
+
 }
