@@ -39,4 +39,29 @@ class RateLimit implements RateLimitInterface {
 
     return $this;
   }
+
+  public function __toString(): string {
+    $hours = $this->interval->format('%h');
+    if ($hours > 0) {
+      if ($hours == 1) {
+        $hours = "hour";
+      }
+      else {
+        $hours = "$hours hours";
+      }
+    }
+    $minutes = $this->interval->format('%i');
+    if ($minutes > 0) {
+      if ($minutes == 1) {
+        $minutes = "minute";
+      }
+      else {
+        $minutes = "$minutes minutes";
+      }
+    }
+    $interval = implode(' ', array_filter([$hours, $minutes]));
+
+    return sprintf('%d every %s', $this->getItemsPerInterval(), $interval);
+  }
+
 }

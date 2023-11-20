@@ -10,6 +10,20 @@ use PHPUnit\Framework\TestCase;
  */
 class RateLimitTest extends TestCase {
 
+  public function testToString() {
+    $limit = new RateLimit(1, 'PT1M');
+    $this->assertSame('1 every minute', (string) $limit);
+    $limit = new RateLimit(1, 'PT5M');
+    $this->assertSame('1 every 5 minutes', (string) $limit);
+
+    $limit = new RateLimit(1, 'PT1H');
+    $this->assertSame('1 every hour', (string) $limit);
+    $limit = new RateLimit(1, 'PT3H');
+
+    $this->assertSame('1 every 3 hours', (string) $limit);
+    $limit = new RateLimit(1, 'PT10H15M');
+    $this->assertSame('1 every 10 hours 15 minutes', (string) $limit);
+  }
 
   public function testSetThenGetItemsPerIntervalWorks() {
     $limit = new RateLimit(1, 'P1D');

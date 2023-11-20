@@ -12,4 +12,10 @@ interface RateLimitInterface {
 
   public function setItemsPerInterval(int $count): self;
 
+  /**
+   * @return string
+   *   A human readable string representing the rate, e.g. "1 every 5 minutes".
+   */
+  public function __toString(): string;
+
 }
