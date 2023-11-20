@@ -11,9 +11,11 @@ use DrupalQueue;
 use Exception;
 use InvalidArgumentException;
 
-abstract class CronQueueJob implements CronJobInterface {
+class CronQueueJob implements CronJobInterface {
 
   use HasDrupalModeTrait;
+
+  private int $time = 30;
 
   public function do(QueueDefinitionInterface $queue_definition): void {
     $name = $queue_definition->getName();
@@ -44,6 +46,16 @@ abstract class CronQueueJob implements CronJobInterface {
         (new GetLogger($this->getDrupalMode()))($channel)->error($e->getMessage());
       }
     }
+  }
+
+  public function setMaxTime(int $time): CronJobInterface {
+    $this->time = $time;
+
+    return $this;
+  }
+
+  public function getMaxTime(): int {
+    return $this->time;
   }
 
 }
