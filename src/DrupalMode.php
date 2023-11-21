@@ -2,7 +2,7 @@
 
 namespace AKlump\Drupal\BatchFramework;
 
-use Drupal;
+use Drupal\Core\Composer\Composer;
 
 class DrupalMode {
 
@@ -62,7 +62,10 @@ class DrupalMode {
   public function __toString(): string {
     if (!isset($this->mode)) {
       $drupal_version = 7;
-      if (class_exists(Drupal::class)) {
+      // This is a pretty obscure class buried in drupal core, so we'll detect
+      // on it, rather than say \Drupal, since I use that in some polyfills in
+      // Drupal 7.
+      if (class_exists(Composer::class)) {
         $drupal_version++;
       }
       if (version_compare($drupal_version, '8') >= 0) {
