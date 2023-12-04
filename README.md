@@ -443,3 +443,49 @@ class BulkMailQueue implements QueueDefinitionInterface {
   }
 }  
 ```
+
+## Batches of Batches
+
+Let's say you create a batch of operations that operate on a single user. Call this `UserReviewBatch`. Then you decide you want to be able to process multiple users along the same lines. Let's call this new batch `MultipleUserReviewBatch`. The following shows how to leverage this API to do just that.
+
+* Make sure `UserReviewBatch` properties are protected not private.
+* **Be careful with `$this->shared`**.  You will most likely want to empty this array before every new user is processed. That is to say, in the very first operation in `UserReviewBatch`.  `$this->context` is now going to be shared across all operations and so you either need to reset `$this->context['results']['shared']` (what `$this->shared` references) or key/scope that very carefully. See `DrupalBatchAPIOperationBase::setBatchContext` for more info.
+* Do not use `\AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait` in `UserReviewBatch` but instead do this:
+
+   ```php
+   public function getLabel(): string {
+       return (new CreateLabelByClass())(self::class);
+   }
+   ```
+
+Here is `MultipleUserReviewBatch`:
+
+```php
+class MultipleUserReviewBatch extends UserReviewBatch {
+
+  /**
+   * @var int[]
+   */
+  private array $uids = [];
+
+  public function __construct(array $uids) {
+    $this->uids = $uids;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getOperations(): array {
+    $operations = [];
+    $accounts = user_load_multiple($this->uids);
+    foreach ($accounts as $account) {
+      // Push operations for this account onto the others.
+      $this->account = $account;
+      $account_operations = parent::getOperations();
+      $operations = array_merge($operations, $account_operations);
+    }
+    return $operations;
+  } 
+
+}
+```
