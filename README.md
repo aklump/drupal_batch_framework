@@ -150,7 +150,7 @@ function some_form_submit_handler(array &$form, array $form_state) {
   $account = $form_state['values']['account'];
 
   // Identify and configure the batch you want to run.
-  $batch = new FooBatch($account)
+  $batch = (new FooBatch($account))
     ->setTitle(t('Creating Archive File'))
     ->setInitMessage(t('Getting things rolling...'))
     ->setProgressMessage(t("Building your archive file; about @estimate until we're done."));
