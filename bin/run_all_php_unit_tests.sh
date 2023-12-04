@@ -9,7 +9,6 @@ verbose=''
 if [[ "${*}" == *'-v'* ]]; then
   verbose='-v'
 fi
-./vendor/bin/phpswap use 7.3 $verbose './vendor/bin/phpunit -c ./tests_unit/phpunit.xml'
 ./vendor/bin/phpswap use 7.4 $verbose './vendor/bin/phpunit -c ./tests_unit/phpunit.xml'
 ./vendor/bin/phpswap use 8.0 $verbose './vendor/bin/phpunit -c ./tests_unit/phpunit.xml'
 ./vendor/bin/phpswap use 8.1 $verbose './vendor/bin/phpunit -c ./tests_unit/phpunit.xml'
