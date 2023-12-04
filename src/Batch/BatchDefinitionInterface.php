@@ -67,15 +67,6 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
   public function handleFailedBatch(array &$batch_data): void;
 
   /**
-   * Called when all operation have reported success and the batch is done.
-   *
-   * @param array $batch_data
-   *
-   * @return void
-   */
-  public function handleSuccessfulBatch(array &$batch_data): void;
-
-  /**
    * Set the title for the progress page.
    *
    * @param $title

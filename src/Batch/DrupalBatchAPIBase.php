@@ -190,7 +190,6 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * @return void
    *
    * @see callback_batch_finished()
-   * @see \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase::handleSuccessfulBatch
    * @see \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase::handleFailedBatch()
    */
   public function finish($success, $batch_data, $operations) {
@@ -252,7 +251,16 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Called when all operation have reported success and the batch is done.
+   *
+   * @param array $batch_data
+   *
+   * @return void
+   *
+   * @deprecated Do not use this, instead place this functionality in an
+   * operation that runs last in your batch.  This makes your batch more
+   * portable as it can then be merged with other batches without loosing this
+   * functionality.  This method will be removed soon.
    */
   public function handleSuccessfulBatch(array &$batch_data): void {
   }
