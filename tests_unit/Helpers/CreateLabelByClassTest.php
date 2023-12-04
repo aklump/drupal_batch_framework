@@ -26,6 +26,10 @@ class CreateLabelByClassTest extends TestCase {
       'Create label by class',
       new CreateLabelByClass(),
     ];
+    $tests[] = [
+      'Create label by class',
+      CreateLabelByClass::class,
+    ];
 
     return $tests;
   }
