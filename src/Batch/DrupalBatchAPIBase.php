@@ -33,9 +33,9 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
 
   protected ?string $batchProcessingPageUrl = NULL;
 
-  private ?\AKlump\Drupal\BatchFramework\Batch\OperationInterface $op = NULL;
+  protected ?OperationInterface $op = NULL;
 
-  private string $opInLoggerChannel = '';
+  protected string $loggerChannelOpLabel = '';
 
   /**
    * {@inheritdoc}
@@ -134,8 +134,8 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    */
   public function getLoggerChannel(): string {
     $op_label = $this->op ?? '';
-    if ($this->opInLoggerChannel) {
-      $op_label = $this->opInLoggerChannel;
+    if ($this->loggerChannelOpLabel) {
+      $op_label = $this->loggerChannelOpLabel;
     }
 
     return (new CreateLoggingChannel())($this->getLabel(), $op_label);
@@ -209,7 +209,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
 
     // This will remove the operation from the logger channel.
     $this->op = NULL;
-    $this->opInLoggerChannel = '';
+    $this->loggerChannelOpLabel = '';
 
     if ($batch_status) {
       $this->getLogger()->info("All batch operations completed in @time.", [
@@ -227,14 +227,14 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
       foreach ($batch_data['exceptions'] as $data) {
         // Setting NULL is so that the logger label resets each time, with the
         // current op.
-        $this->opInLoggerChannel = $data['op'] ?? '';
+        $this->loggerChannelOpLabel = $data['op'] ?? '';
         $message = trim(($data['message'] ?? '') . "\n" . ($data['exception_trace'] ?? ''));
         if ($message) {
           $this->getLogger()->error($message);
         }
       }
 
-      $this->opInLoggerChannel = '';
+      $this->loggerChannelOpLabel = '';
     }
     if (FALSE === $batch_status) {
       $this->handleFailedBatch($batch_data);
