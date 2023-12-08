@@ -22,6 +22,9 @@ trait CanHandleBatchResultExceptionsTrait {
   }
 
   private function handleBatchResultsExceptions(array $batch_results): void {
+    if (empty($batch_results['exceptions'])) {
+      return;
+    }
     foreach ($batch_results['exceptions'] as $data) {
       $message = trim(($data['message'] ?? '') . "\n" . ($data['exception_trace'] ?? ''));
       if (!$message) {
