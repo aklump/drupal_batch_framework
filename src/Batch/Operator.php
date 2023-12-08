@@ -3,6 +3,7 @@
 namespace AKlump\Drupal\BatchFramework\Batch;
 
 use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
+use AKlump\Drupal\BatchFramework\UnmetDependencyException;
 use Drupal;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 
@@ -56,7 +57,7 @@ final class Operator {
     try {
       $unmet_dependencies = array_diff($operation->getDependencies(), $batch_context['results']['operations_finished']);
       if ($unmet_dependencies) {
-        throw new \AKlump\Drupal\BatchFramework\UnmetDependencyException($operation, $unmet_dependencies);
+        throw new UnmetDependencyException($operation, $unmet_dependencies);
       }
 
       if (!$operation->isInitialized()) {
