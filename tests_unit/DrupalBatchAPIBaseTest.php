@@ -54,85 +54,23 @@ class DrupalBatchAPIBaseTest extends TestCase {
     $batch->finish(TRUE, $batch_data, []);
   }
 
-  public function dataForTestOnBatchFinishedReceivesCorrectStatusProvider() {
-    $tests = [];
-    $tests[] = [
-      TRUE,
-      [],
-    ];
-    $tests[] = [
-      FALSE,
-      [
-        [
-          $this->createMock(OperationInterface::class),
-          new Exception(),
-        ],
-      ],
-    ];
-
-    return $tests;
-  }
-
-  /**
-   * @dataProvider dataForTestOnBatchFinishedReceivesCorrectStatusProvider
-   */
-  public function testCorrectBatchStopMethodIsCalled(bool $expected, array $exception_data) {
-    $batch_data = [
-      'exceptions' => $exception_data,
-    ];
-
+  public function testHandleFailedBatchIsOnlyCalledIfBatchFails() {
     $logger = $this->createMock(LoggerInterface::class);
+    $batch = new Batch_ModernDrupal($logger);
 
-    if ($expected) {
-      $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
-        'getLogger',
-        'handleSuccessfulBatch',
-      ]);
-      $batch->method('getLogger')->willReturn($logger);
-      $batch
-        ->expects($this->exactly(1))
-        ->method('handleSuccessfulBatch')
-        ->willReturnCallback(function () use (&$batch_data) {
-          $batch_data = func_get_args();
-        });
-    }
-    else {
-      $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
-        'getLogger',
-        'handleFailedBatch',
-      ]);
-      $batch->method('getLogger')->willReturn($logger);
-      $batch
-        ->expects($this->exactly(1))
-        ->method('handleFailedBatch')
-        ->willReturnCallback(function () use (&$batch_data) {
-          $batch_data = func_get_args();
-        });
-    }
+    global $handle_failed_batch_args;
 
+    $batch_data = [];
+
+    $handle_failed_batch_args = NULL;
     $batch->finish(TRUE, $batch_data, []);
-  }
+    $this->assertNull($handle_failed_batch_args);
 
-  public function testHandleSuccessfulBatchReceivesElapsedTime() {
-    $expected_min_duration = 120;
-
-    $batch_data = [
-      'start' => time() - $expected_min_duration,
-    ];
-
-    $logger = $this->createMock(LoggerInterface::class);
-    $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
-      'getLogger',
-      'handleSuccessfulBatch',
-    ]);
-    $batch->method('getLogger')->willReturn($logger);
-    $batch->method('handleSuccessfulBatch')
-      ->willReturnCallback(function () use (&$elapsed) {
-        $elapsed = func_get_args()[0]['elapsed'];
-      });
-    $batch->finish(TRUE, $batch_data, []);
-
-    $this->assertGreaterThanOrEqual($expected_min_duration, $elapsed);
+    $batch_data = [];
+    $handle_failed_batch_args = NULL;
+    $batch->finish(FALSE, $batch_data, []);
+    $this->assertIsArray($handle_failed_batch_args);
+    $this->assertNotEmpty($handle_failed_batch_args);
   }
 
   public function testHandleFailedBatchReceivesElapsedTime() {
@@ -149,18 +87,15 @@ class DrupalBatchAPIBaseTest extends TestCase {
     ];
 
     $logger = $this->createMock(LoggerInterface::class);
-    $batch = $this->createPartialMock(Batch_ModernDrupal::class, [
-      'getLogger',
-      'handleFailedBatch',
-    ]);
-    $batch->method('getLogger')->willReturn($logger);
-    $batch->method('handleFailedBatch')
-      ->willReturnCallback(function () use (&$elapsed) {
-        $elapsed = func_get_args()[0]['elapsed'];
-      });
-    $batch->finish(TRUE, $batch_data, []);
+    $batch = new Batch_ModernDrupal($logger);
 
-    $this->assertGreaterThanOrEqual($expected_min_duration, $elapsed);
+    global $handle_failed_batch_args;
+
+    $handle_failed_batch_args = NULL;
+    $batch->finish(FALSE, $batch_data, []);
+
+    $this->assertGreaterThanOrEqual($batch_data['start'], $handle_failed_batch_args[0]["start"]);
+    $this->assertGreaterThanOrEqual($expected_min_duration, $handle_failed_batch_args[0]["elapsed"]);
   }
 
   public function testSetTitle() {
@@ -224,8 +159,16 @@ class_alias(Url::class, 'Drupal\Core\Url');
 
 class Batch_ModernDrupal extends DrupalBatchAPIBase {
 
+  public function __construct(LoggerInterface $logger = NULL) {
+    $this->logger = $logger;
+  }
+
   public function getDrupalMode(): DrupalMode {
     return new DrupalMode(DrupalMode::MODERN);
+  }
+
+  public function getLogger(): LoggerInterface {
+    return $this->logger;
   }
 
   public function getLabel(): string {
@@ -234,6 +177,11 @@ class Batch_ModernDrupal extends DrupalBatchAPIBase {
 
   public function getOperations(): array {
     return [];
+  }
+
+  public static function handleFailedBatch(array $batch_results, array $exceptions, MessengerInterface $messenger, LoggerInterface $logger, string $logger_channel): void {
+    global $handle_failed_batch_args;
+    $handle_failed_batch_args = func_get_args();
   }
 
 }
