@@ -108,8 +108,11 @@ final class Operator {
 
   private static function setBatchHasFailed(OperationInterface $operation, array &$batch_context, \Exception $exception) {
     $batch_context['results']['exceptions'][] = [
-      'op_class' => get_class($operation),
       'op' => $operation->getLabel(),
+      'op_class' => get_class($operation),
+      'current' => time(),
+      'sandbox' => $batch_context['sandbox'],
+      'shared' => $batch_context['results']['shared'],
       'message' => $exception->getMessage(),
       'exception_class' => get_class($exception),
       'exception_code' => $exception->getCode(),

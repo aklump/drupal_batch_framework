@@ -212,7 +212,15 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
       $this->handleBatchResultsExceptions($batch_results);
     }
     if (FALSE === $batch_status) {
-      $this->handleFailedBatch($batch_results);
+      $exceptions = $batch_results['exceptions'] ?? [];
+
+      // It seems better DX to break out the exceptions as a separate array and
+      // exclude unnecessary keys from the results that we send onward at this
+      // point.  Shared is embedded in each exception at the time of the
+      // exception, so $batch_results['shared'] is misleading and leaves room
+      // for developer error.
+      $partial_results = array_intersect_key($batch_results, array_flip(['start', 'operations_finished', 'elapsed']));
+      static::handleFailedBatch($partial_results, $exceptions, $this->getMessenger(), $this->getLogger(), $this->getLoggerChannel());
     }
     else {
       $this->handleSuccessfulBatch($batch_results);
@@ -222,7 +230,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function handleFailedBatch(array &$batch_data): void {
+  public static function handleFailedBatch(array $batch_results, array $exceptions, MessengerInterface $messenger, LoggerInterface $logger, string $logger_channel): void {
   }
 
   /**

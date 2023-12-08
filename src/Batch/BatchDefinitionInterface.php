@@ -5,6 +5,7 @@ namespace AKlump\Drupal\BatchFramework\Batch;
 use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
 use AKlump\Drupal\BatchFramework\HasLoggerInterface;
 use AKlump\Drupal\BatchFramework\HasMessengerInterface;
+use Psr\Log\LoggerInterface;
 
 interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInterface {
 
@@ -56,15 +57,26 @@ interface BatchDefinitionInterface extends HasLoggerInterface, HasMessengerInter
   public function process(string $redirect = NULL, $redirect_callback = NULL);
 
   /**
-   * Called when a batch has failed.
+   * Handle a failed batch operation.
    *
-   * This is called even when exceptions are thrown.
+   * This has to be static because instance properties are not reliable.  If you
+   * need the value of a batch property, then you should use an operaton to add
+   * it to the shared array.  You may then retrieve it from the $exceptions
+   * context array.
    *
-   * @param array &$batch_data
+   * @param array $batch_results The results of the failed batch operation.
+   * @param array $exceptions An array containing the exceptions thrown and
+   * context at the time of each.
+   * @param MessengerInterface $messenger The messenger instance used for
+   * sending notifications.
+   * @param LoggerInterface $logger The logger instance used for logging the
+   * failed batch operation.
+   * @param string $logger_channel The channel on which to log the failed batch
+   * operation.
    *
    * @return void
    */
-  public function handleFailedBatch(array &$batch_data): void;
+  public static function handleFailedBatch(array $batch_results, array $exceptions, MessengerInterface $messenger, LoggerInterface $logger, string $logger_channel): void;
 
   /**
    * Set the title for the progress page.
