@@ -3,9 +3,9 @@
 namespace AKlump\Drupal\BatchFramework\Batch;
 
 use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
-use AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel;
 use AKlump\Drupal\BatchFramework\Helpers\GetLogger;
 use AKlump\Drupal\BatchFramework\Helpers\GetMessenger;
+use AKlump\Drupal\BatchFramework\Traits\CanHandleBatchResultExceptionsTrait;
 use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use Drupal;
 use Drupal\Core\Messenger\Messenger;
@@ -24,6 +24,7 @@ use function batch_set;
 abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
 
   use HasDrupalModeTrait;
+  use CanHandleBatchResultExceptionsTrait;
 
   protected array $batch = [];
 
@@ -34,8 +35,6 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   protected ?string $batchProcessingPageUrl = NULL;
 
   protected ?OperationInterface $op = NULL;
-
-  protected string $loggerChannelOpLabel = '';
 
   /**
    * {@inheritdoc}
@@ -132,18 +131,6 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
   /**
    * {@inheritdoc}
    */
-  public function getLoggerChannel(): string {
-    $op_label = $this->op ?? '';
-    if ($this->loggerChannelOpLabel) {
-      $op_label = $this->loggerChannelOpLabel;
-    }
-
-    return (new CreateLoggingChannel())($this->getLabel(), $op_label);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getLogger(): LoggerInterface {
     $channel = $this->getLoggerChannel();
 
@@ -184,7 +171,7 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * OVERRIDE IT.  Use onBatchFinish() to instead, it's cleaner.
    *
    * @param $success
-   * @param $batch_data
+   * @param $batch_results
    * @param $operations
    *
    * @return void
@@ -192,20 +179,20 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
    * @see callback_batch_finished()
    * @see \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase::handleFailedBatch()
    */
-  public function finish($success, $batch_data, $operations) {
+  public function finish($success, $batch_results, $operations) {
     // I have found that $success comes as TRUE when it shouldn't, and I don't
     // know why, so I've handled batch success detection on my own further down.
 
     // Calculate the batch elapsed time.
     $elapsed = '(missing)';
     // TODO Maybe we can ensure this gets set somewhere?
-    if (isset($batch_data['start'])) {
-      $batch_data['elapsed'] = time() - $batch_data['start'];
-      $elapsed = $batch_data['elapsed'] . ' seconds';
+    if (isset($batch_results['start'])) {
+      $batch_results['elapsed'] = time() - $batch_results['start'];
+      $elapsed = $batch_results['elapsed'] . ' seconds';
     }
 
     // Base batch status on if any exception was thrown.
-    $batch_status = $success && empty($batch_data['exceptions']);
+    $batch_status = $success && empty($batch_results['exceptions']);
 
     // This will remove the operation from the logger channel.
     $this->op = NULL;
@@ -222,25 +209,13 @@ abstract class DrupalBatchAPIBase implements BatchDefinitionInterface {
         '@batch' => $this->getLabel(),
         '@time' => $elapsed,
       ]);
-
-      $batch_data['exceptions'] = $batch_data['exceptions'] ?? [];
-      foreach ($batch_data['exceptions'] as $data) {
-        // Setting NULL is so that the logger label resets each time, with the
-        // current op.
-        $this->loggerChannelOpLabel = $data['op'] ?? '';
-        $message = trim(($data['message'] ?? '') . "\n" . ($data['exception_trace'] ?? ''));
-        if ($message) {
-          $this->getLogger()->error($message);
-        }
-      }
-
-      $this->loggerChannelOpLabel = '';
+      $this->handleBatchResultsExceptions($batch_results);
     }
     if (FALSE === $batch_status) {
-      $this->handleFailedBatch($batch_data);
+      $this->handleFailedBatch($batch_results);
     }
     else {
-      $this->handleSuccessfulBatch($batch_data);
+      $this->handleSuccessfulBatch($batch_results);
     }
   }
 
