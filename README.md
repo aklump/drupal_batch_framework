@@ -274,7 +274,7 @@ public function handleFailedBatch(array &$batch_data): void {
 
 1. Create a queue definition by implementing `\AKlump\Drupal\BatchFramework\QueueDefinitionInterface`
 3. Do implement `hook_cron`  as shown below with your queue definition class.
-4. Fill the queue using an operations.
+4. Fill the queue using operations (see below).
 5. Ensure cron is running.
 2. Note this strategy does not use `hook_cron_queue_info`.
 
@@ -288,7 +288,7 @@ class FooQueue implements \AKlump\Drupal\BatchFramework\QueueDefinitionInterface
   }
 
   public function getWorker(): callable {
-    return (new \AKlump\Drupal\BatchFramework\QueueWorker())->setLoggerChannel($this->getLoggerChannel());
+    return (new \AKlump\Drupal\BatchFramework\Queue\QueueWorker())->setLoggerChannel($this->getLoggerChannel());
   }
 
   public function getLoggerChannel(): string {

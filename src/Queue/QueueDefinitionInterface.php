@@ -6,7 +6,7 @@ interface QueueDefinitionInterface {
 
   /**
    * @return string
-   *   The name to be used by the Drupal Queue API.
+   *   The machine name to be used by the Drupal Queue API, e.g., 'foo_queue'.
    */
   public function getName(): string;
 
@@ -27,7 +27,7 @@ interface QueueDefinitionInterface {
 
   /**
    * @return string
-   *   If this queue has an management URL return it here otherwise return ''.
+   *   If this queue has a management URL return it here otherwise return ''.
    */
   public function getAdminUrl(): string;
 
