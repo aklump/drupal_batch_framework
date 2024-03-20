@@ -2,6 +2,7 @@
 
 namespace AKlump\Drupal\BatchFramework\Cron;
 
+use AKlump\Drupal\BatchFramework\Helpers\CreateLoggingChannel;
 use AKlump\Drupal\BatchFramework\Helpers\GetLogger;
 use AKlump\Drupal\BatchFramework\Queue\QueueDefinitionInterface;
 use AKlump\Drupal\BatchFramework\Queue\QueueWorkerTimeoutException;
@@ -70,7 +71,7 @@ class CronCreateJobFromQueue
   }
 
   public function getLogger(): LoggerInterface {
-    $channel = $this->definition->getLoggerChannel();
+    $channel = (new CreateLoggingChannel())('Cron', $this->definition->getLoggerChannel());
 
     return (new GetLogger($this->getDrupalMode()))($channel);
   }
