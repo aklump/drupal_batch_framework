@@ -10,6 +10,7 @@ use AKlump\Drupal\BatchFramework\Traits\HasDrupalModeTrait;
 use DrupalQueue;
 use Exception;
 use InvalidArgumentException;
+use Psr\Log\LoggerInterface;
 
 class CronCreateJobFromQueue
   implements CronJobInterface {
