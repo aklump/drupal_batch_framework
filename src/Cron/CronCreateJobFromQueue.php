@@ -28,6 +28,7 @@ class CronCreateJobFromQueue
   }
 
   public function do(): void {
+    $this->getLogger()->info('Job started');
     $name = $this->definition->getName();
     $queue = DrupalQueue::get($name);
     $queue->createQueue();
@@ -52,8 +53,7 @@ class CronCreateJobFromQueue
         $queue->releaseItem($item);
       }
       catch (Exception $e) {
-        $channel = $this->definition->getLoggerChannel();
-        (new GetLogger($this->getDrupalMode()))($channel)->error($e->getMessage());
+        $this->getLogger()->error($e->getMessage());
       }
     }
   }
@@ -66,6 +66,12 @@ class CronCreateJobFromQueue
 
   public function getMaxTime(): int {
     return $this->time;
+  }
+
+  public function getLogger(): LoggerInterface {
+    $channel = $this->definition->getLoggerChannel();
+
+    return (new GetLogger($this->getDrupalMode()))($channel);
   }
 
 }
