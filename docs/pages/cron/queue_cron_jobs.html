@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap/dist/css/bootstrap.css?ver=0.0.33">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/style.css?ver=0.0.33">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap-icons/font/bootstrap-icons.min.css?ver=0.0.33">
+    <title>Working With Cron Queues | Book</title>
+</head>
+<body class="my-5">
+
+<header class="header bg-light fixed-top p-2 pt-1">
+  <div class="container-md">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="header__breadcrumbs flex-shrink-0 flex-grow-1 me-3">
+        <nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+      <a class="fw-bold" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/index.html">Book</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a class="fw-bold" href="#" data-bs-toggle="offcanvas"
+         data-bs-target="#table-of-contents"
+         aria-controls="table-of-contents">TOC</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html">Cron</a></li>
+  </ol>
+</nav>
+
+      </div>
+      <div class="header__tags me-3">  </div>
+      <div class="header__page-numbers flex-shrink-1">4
+        / 4</div>
+    </div>
+  </div>
+</header>
+
+<main class="container-md flex-column">
+  <div class="row mb-5 pt-5">
+    <article class="col">
+      <h1 class="mb-4 text-primary">Working With Cron Queues</h1>
+      <ol>
+<li>Create a queue definition by implementing <code>\AKlump\Drupal\BatchFramework\QueueDefinitionInterface</code></li>
+<li>Do implement <code>hook_cron</code>  as shown below with your queue definition class.</li>
+<li>Fill the queue using operations (see below).</li>
+<li>Ensure cron is running.</li>
+<li>Note this strategy does not use <code>hook_cron_queue_info</code>.</li>
+</ol>
+<pre><code class="php">class FooQueue implements \AKlump\Drupal\BatchFramework\QueueDefinitionInterface {
+
+  use \AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
+
+  public function getName(): string {
+    return 'foo_queue';
+  }
+
+  public function getWorker(): callable {
+    return (new \AKlump\Drupal\BatchFramework\Queue\QueueWorker())-&gt;setLoggerChannel($this-&gt;getLoggerChannel());
+  }
+
+  public function getLoggerChannel(): string {
+    return $this-&gt;getLabel();
+  }
+  
+}
+</code></pre>
+<pre><code class="php">/**
+ * Implements hook_cron_queue_info().
+ */
+function my_module_cron_() {
+  (new CronCreateJobFromQueue(new FooQueue()))
+    -&gt;setMaxTime(30)
+    -&gt;do();
+}
+</code></pre>
+<h3>Add an Item to the Queue</h3>
+<p>The most important is to ensure you add the operation instance that will process the item to the queue item as <code>operation</code>.</p>
+<pre><code class="php">$queue_name = (new FooQueue())-&gt;getName();
+$queue = \DrupalQueue::get($queue_name);
+$queue-&gt;createQueue();
+
+$item = [
+  \AKlump\Drupal\BatchFramework\QueueItemInterface::OPERATION =&gt; new BarOperation(),
+  'key' =&gt; 'data',
+  'key2' =&gt; 'data2'
+];
+if (FALSE === $queue-&gt;createItem($item)) {
+  $logger_channel = (new FooQueue())-&gt;getLoggerChannel();
+  $logger = (new \AKlump\Drupal\BatchFramework\Helpers\GetLogger(new \AKlump\Drupal\BatchFramework\DrupalMode()))($logger_channel);
+  $logger-&gt;error("Failed to queue item");
+}
+
+</code></pre>
+<h3>The Operation Class</h3>
+<ul>
+<li>If the operation throws any exception the item remains in the queue.</li>
+<li>If the operation times out the item remains in the queue.</li>
+<li>If the operation returns <code>getProgressRatio()</code> &lt; 1 on the final pass, the item remains in the queue.</li>
+<li>The queue item is available in <code>$this-&gt;context['results'][QueueWorkerInterface::ITEMS]</code>; see <code>CronOperation::process</code></li>
+</ul>
+<pre><code class="php">&lt;?php
+
+namespace Drupal\ova_user_export\Batch\Operations;
+
+use AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase;
+use AKlump\Drupal\BatchFramework\Helpers\GetProgressRatio;
+use AKlump\Drupal\BatchFramework\QueueWorker;
+use Drupal\ova_user_export\Mail\EmailEventObjectId;
+use Drupal\ova_user_export\Mail\GetTemplateByMessage;
+use Drupal\ovagraph_core\UserActivity\Event;
+use Drupal\ovagraph_core\UserActivity\EventStorage;
+
+class CronOperation extends DrupalBatchAPIOperationBase {
+
+  private bool $recordEvents;
+
+  public function __construct(bool $record_events = TRUE) {
+    $this-&gt;recordEvents = $record_events;
+  }
+
+  public function isInitialized(): bool {
+    return isset($this-&gt;sb['items']);
+  }
+
+  public function initialize(): void {
+    $this-&gt;sb['items'] = $this-&gt;context['results'][QueueWorkerInterface::ITEMS];
+    $this-&gt;sb['total'] = count($this-&gt;sb['items']);
+  }
+
+  public function getProgressRatio(): float {
+    return (new GetProgressRatio())($this-&gt;sb['total'], $this-&gt;sb['items']);
+  }
+
+  public function process(): void {
+    $item = array_pop($this-&gt;sb['items']);
+
+    // TODO Implement throttle mechanism, e.g no more than 100 emails per hour.
+
+    if (isset($item['uid'])) {
+      $user = user_load($item['uid']);
+    }
+    else {
+      $user = user_load_by_mail($item['send_to']);
+    }
+    if (!$user) {
+      $this-&gt;getLogger()
+        -&gt;error('Email not sent; cannot locate user by @mail', ['@mail' =&gt; $item['send_to']]);
+
+      return;
+    }
+
+    $template_class = $item['template_class'];
+    /** @var \Drupal\ova_user_export\Mail\BulkEmailInterface $template */
+    $template = new $template_class();
+    $message = drupal_mail('ova_user_export', $template-&gt;getDrupalMailKey(), $item['send_to'], LANGUAGE_NONE, [
+      GetTemplateByMessage::KEY =&gt; $template_class,
+      EmailEventObjectId::KEY =&gt; $item[EmailEventObjectId::KEY],
+    ]);
+
+    if (isset($message['result']) &amp;&amp; TRUE === $message['result']) {
+      $event_type = $template-&gt;getUserEventTypeSent();
+      if ($event_type) {
+        $identifier = new EmailEventObjectId($message);
+        $object_id = $identifier-&gt;get();
+        if (NULL === $object_id) {
+          $object_id = $identifier::createId($message['to'], $message['subject']);
+          $identifier-&gt;set($object_id);
+        }
+        if ($this-&gt;recordEvents) {
+          $event = new Event($event_type, $user-&gt;uid, $object_id);
+          (new EventStorage())-&gt;save($event);
+        }
+      }
+    }
+
+    $this-&gt;shared['drupal_mail'][] = $message;
+  }
+
+}
+
+</code></pre>
+<h2>Rate Limits on Cron Queue</h2>
+<p>To limit the speed at which items are processed in the cron queue you should use an instance of <code>\AKlump\Drupal\BatchFramework\Throttle\GateInterface</code>.</p>
+<pre><code class="php">class BulkMailQueue implements QueueDefinitionInterface {
+  public function getWorker(): callable {
+  
+    // 1. Create a gate that will limit batch flow to 1 per 5 minutes.
+    $gate = new \AKlump\Drupal\BatchFramework\Throttle\DrupalGate(
+      $this-&gt;getName(),
+      new \AKlump\Drupal\BatchFramework\Throttle\RateLimit(1, 'PT5M')
+    );
+
+    return (new QueueWorker())
+      // 2. Pass the gate to the worker.
+      -&gt;setRateLimitGate($gate)
+      -&gt;setLoggerChannel($this-&gt;getLoggerChannel());
+  }
+}  
+</code></pre>
+    </article>
+  </div>
+</main>
+
+  <footer class="footer d-flex justify-content-center">
+    <div class="flex-column justify-content-center">
+                  Version:
+          <strong>0.0.33</strong>
+          &bull;
+                Last Update: <strong>3/21/2024</strong>
+    </div>
+  </footer>
+
+
+<nav class="nav d-flex justify-content-center align-items-center
+  fixed-bottom">
+  <div class="btn-group flex-fill">
+              <a href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html" class="btn nav__prev-chapter btn-secondary"><i class="bi
+      bi-caret-left-fill"></i> Simple Cron Jobs</a>
+  
+    
+              <a href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html" class="btn nav__prev-page js-nav__prev-page
+    btn-primary"><i class="bi
+      bi-caret-left-fill"></i></a>
+  
+    
+    <a class="nav__toc btn btn-light" href="#"
+       data-bs-toggle="offcanvas"
+       data-bs-target="#table-of-contents"
+       aria-controls="table-of-contents"><i class="bi
+           bi-list-ol"></i></a>
+    
+              <span class="btn nav__next-page js-nav__next-page
+    btn-primary"></span>
+  
+    
+              <span class="btn nav__next-chapter btn-secondary "></span>
+  
+  </div>
+</nav>
+
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="table-of-contents"
+     aria-labelledby="table-of-contents__title" data-bs-keyboard="true">
+  <div class="offcanvas-header">
+    <h1 class="h6 offcanvas-title js-chapter-list-title"
+        id="table-of-contents__title">All
+      Chapters
+      &amp; Pages</h1>
+    <h1 class="d-none h6 offcanvas-title js-search-results-title"
+        id="table-of-contents__title">Search Results</h1>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+          <input class="js-search form-control mb-4" type="search"
+             placeholder="Search docs..."
+             aria-label="Search">
+      <div class="js-search-results d-none">
+        <h2 class="h4 mt-4">Matched Pages</h2>
+        <ol class="list-unstyled">
+                                              <li data-page="readme" value="1">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/readme.html">Drupal Batch Framework (A Drupal Component)<span
+              class="js-search-score
+              badge
+              bg-info rounded-pill badge-sm"></span></a>&nbsp;[General]
+    </li>
+  
+                                    <li data-page="changelog" value="2">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/changelog.html">Changelog<span
+              class="js-search-score
+              badge
+              bg-info rounded-pill badge-sm"></span></a>&nbsp;[General]
+    </li>
+  
+                                                          <li data-page="cron_jobs" value="3">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html">Simple Cron Jobs<span
+              class="js-search-score
+              badge
+              bg-info rounded-pill badge-sm"></span></a>&nbsp;[Cron]
+    </li>
+  
+                                    <li data-page="queue_cron_jobs" value="4">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/queue_cron_jobs.html">Working With Cron Queues<span
+              class="js-search-score
+              badge
+              bg-info rounded-pill badge-sm"></span></a>&nbsp;[Cron]
+    </li>
+  
+                              </ol>
+      </div>
+        
+    <div class="js-chapter-list">
+              <h2 class="h4 mt-4">General</h2>
+        <ol>
+                                <li data-page="readme" value="1">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/readme.html">Drupal Batch Framework (A Drupal Component)</a>&nbsp;[General]
+    </li>
+  
+                                <li data-page="changelog" value="2">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/changelog.html">Changelog</a>&nbsp;[General]
+    </li>
+  
+                  </ol>
+              <h2 class="h4 mt-4">Cron</h2>
+        <ol>
+                                <li data-page="cron_jobs" value="3">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html">Simple Cron Jobs</a>&nbsp;[Cron]
+    </li>
+  
+                                <li data-page="queue_cron_jobs" value="4">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/queue_cron_jobs.html">Working With Cron Queues</a>&nbsp;[Cron]
+    </li>
+  
+                  </ol>
+          </div>
+  </div>
+</div>
+<div class="modal fade" id="modal" tabindex="-1"
+     aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="js-modal-title modal-title" id="modal-title"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mt-1 mb-4">
+                  </p>
+        
+                
+        <ul class="list-group list-group-flush">
+                                    <a class="list-group-item list-group-item-action"
+                 data-tags="[]" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/readme.html">Drupal Batch Framework (A Drupal Component)</a>
+                                                <a class="list-group-item list-group-item-action"
+                 data-tags="[]" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/changelog.html">Changelog</a>
+                                                <a class="list-group-item list-group-item-action"
+                 data-tags="[]" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html">Simple Cron Jobs</a>
+                                                <a class="list-group-item list-group-item-action"
+                 data-tags="[]" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/queue_cron_jobs.html">Working With Cron Queues</a>
+                              </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap/dist/js/bootstrap.min.js?ver=0.0.33"></script>
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/lunr.js?ver=0.0.33"></script>
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/knowledge.min.js?ver=0.0.33"></script>
+
+</body>
+</html>
