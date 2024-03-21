@@ -6,6 +6,7 @@ interface CronJobInterface {
 
   /**
    * @param int $time
+   *   If time is 0 then the job will be skipped.
    *
    * @return self
    */

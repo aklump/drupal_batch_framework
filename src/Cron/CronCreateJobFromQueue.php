@@ -30,6 +30,9 @@ class CronCreateJobFromQueue
   }
 
   public function do(): void {
+    if ($this->time === 0) {
+      return;
+    }
     $this->getLogger()->info('Job started');
     $name = $this->definition->getName();
     $queue = DrupalQueue::get($name);

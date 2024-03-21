@@ -48,6 +48,9 @@ class CronCreateJobFromOperation implements CronJobInterface, HasLoggerInterface
   }
 
   public function do(): void {
+    if ($this->timeout === 0) {
+      return;
+    }
     $this->getLogger()->info('Job started');
     $batch_context = [];
     Operator::handleOperation(
