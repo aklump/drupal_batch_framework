@@ -1,6 +1,6 @@
 <?php
 
-namespace AKlump\Drupal\BatchFramework\Tests\Unit;
+namespace AKlump\Drupal\BatchFramework\Tests\Unit\Batch;
 
 use AKlump\Drupal\BatchFramework\Adapters\DrupalMessengerAdapter;
 use AKlump\Drupal\BatchFramework\Adapters\LegacyDrupalLoggerAdapter;
@@ -9,6 +9,7 @@ use AKlump\Drupal\BatchFramework\Adapters\MessengerInterface;
 use AKlump\Drupal\BatchFramework\Batch\DrupalBatchAPIBase;
 use AKlump\Drupal\BatchFramework\Batch\OperationInterface;
 use AKlump\Drupal\BatchFramework\DrupalMode;
+use AKlump\Drupal\BatchFramework\Tests\Unit\GetExceptionData;
 use Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -158,6 +159,11 @@ class_alias(Url::class, 'Drupal\Core\Url');
 
 
 class Batch_ModernDrupal extends DrupalBatchAPIBase {
+
+  /**
+   * @var \Psr\Log\LoggerInterface|null
+   */
+  private ?LoggerInterface $logger;
 
   public function __construct(LoggerInterface $logger = NULL) {
     $this->logger = $logger;

@@ -16,15 +16,15 @@ final class Operator {
    * @endcode
    *
    * @param \AKlump\Drupal\BatchFramework\Batch\OperationInterface $op
-   * @param int $timeout
+   * @param int $max_execution_seconds
    *   The total seconds not to exceed.  The operation will be processed until
-   *   $batch_context['finished'] === 1 or the $timeout has been met.
-   *   When this is being used by the Batch API, this becomes the UI refresh
-   *   rate, so you may want to set this lower, e.g. 3.  Set this to zero and
-   *   \AKlump\Drupal\BatchFramework\OperationInterface::process will only be
-   *   called once.  For Queue operations you should set it higher, e.g. 60 to
-   *   prevent items getting stuck in the queue simply because the operation
-   *   didn't have enough time to finish.
+   *   $batch_context['finished'] === 1 or the $max_execution_seconds has been
+   *   met. When this is being used by the Batch API, this becomes the UI
+   *   refresh rate, so you may want to set this lower, e.g. 3.  Set this to
+   *   zero and \AKlump\Drupal\BatchFramework\OperationInterface::process will
+   *   only be called once.  For Queue operations you should set it higher, e.g.
+   *   60 to prevent items getting stuck in the queue simply because the
+   *   operation didn't have enough time to finish.
    * @param \Psr\Log\LoggerInterface|NULL $logger
    *   Used for developer messages to be written to backend logs.  Not for the
    *   public user.
@@ -36,7 +36,7 @@ final class Operator {
    */
   public static function handleOperation(
     OperationInterface $operation,
-    int $timeout,
+    int $max_execution_seconds,
     string $logger_channel = NULL,
     ?MessengerInterface $messenger = NULL,
     // $batch_context must always remain the last argument.  @see
@@ -46,6 +46,7 @@ final class Operator {
     self::initializeBatchContext($batch_context);
     $batch_context['logger_channel'] = $logger_channel;
     $batch_context['messenger'] = $messenger;
+    $batch_context['max_execution_seconds'] = $max_execution_seconds;
     $operation->setBatchContext($batch_context);
 
     if ($operation->getBatchFailures()) {
@@ -63,7 +64,7 @@ final class Operator {
       if (!$operation->isInitialized()) {
         $operation->initialize();
       }
-      $end = time() + $timeout;
+      $end = time() + $max_execution_seconds;
       $processed = FALSE;
       do {
         // We do not want to process until we've checked our progress ratio

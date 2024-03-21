@@ -13,6 +13,24 @@ use PHPUnit\Framework\TestCase;
  */
 class OperatorTest extends TestCase {
 
+
+  public function testTimeoutReceivedByOperationAsBatchContext() {
+    $operation = $this->createMock(OperationInterface::class);
+    $received_context = NULL;
+    $operation->method('setBatchContext')
+      ->willReturnCallback(function ($batch_context) use (&$received_context, $operation) {
+        $received_context = $batch_context;
+
+        return $operation;
+      });
+    $operation->method('getProgressRatio')
+      ->willReturnOnConsecutiveCalls(0.0, 1.0);
+
+    $timeout = 90;
+    Operator::handleOperation($operation, $timeout);
+    $this->assertSame($timeout, $received_context['max_execution_seconds']);
+  }
+
   public function testOperationsFinishedGrowsEachTimeOpFinishes() {
     $batch_context = [];
 

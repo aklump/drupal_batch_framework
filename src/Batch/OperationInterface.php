@@ -62,12 +62,35 @@ interface OperationInterface extends \AKlump\Drupal\BatchFramework\HasLoggerInte
   /**
    * Indicate how much processing remains.
    *
+   * The progress ratio will be ignored if getRemainingTime is 0 or less, as the
+   * timeout takes precedence.
+   *
    * @return float
    *   From 0 to 1 indicating how close the process is to completion, where 1 is
    *   100% complete.
    * @see \AKlump\Drupal\BatchFramework\Helpers\GetProgressRatio
+   * @see \AKlump\Drupal\BatchFramework\Batch\OperationInterface::getRemainingTime()
    */
   public function getProgressRatio(): float;
+
+  /**
+   * Get the number of seconds left before timeout state has been reached.
+   *
+   * It's up to the operation to determine how to handle such state, but
+   * generally the operation should respect the timeout and try to stop
+   * processing as soon as possible.
+   *
+   * @code
+   * if (!$this->getRemainingTime()) {
+   *   // exit processing immediately
+   * }
+   * @endcode
+   *
+   * @return int
+   *   A positive value or 0.  This value will never be less than 0.  0
+   *   indicates the operation has timed out.
+   */
+  public function getRemainingTime(): int;
 
   /**
    * Do the process.

@@ -15,6 +15,8 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
 
   use HasDrupalModeTrait;
 
+  const DEFAULT_MAX_EXECUTION = 60;
+
   protected array $context = [];
 
   protected array $sb = [];
@@ -63,11 +65,28 @@ abstract class DrupalBatchAPIOperationBase implements OperationInterface {
   public function setBatchContext(array &$batch_context): self {
     $this->context = &$batch_context;
     $batch_context += ['sandbox' => [], 'results' => []];
-    $batch_context['results'] += ['shared' => []];
+    $batch_context['results'] += [
+      // We ensure this for ::getRemainingTime().
+      'start' => time(),
+      'shared' => [],
+    ];
     $this->sb = &$batch_context['sandbox'];
     $this->shared = &$batch_context['results']['shared'];
 
     return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getRemainingTime(): int {
+    $start = $this->context['results']['start'] ?? NULL;
+    if (!isset($start)) {
+      throw new \RuntimeException(sprintf('Cannot calculate remaining time due to missing context: results.start'));
+    }
+    $timeout = $this->context['max_execution_seconds'] ?? self::DEFAULT_MAX_EXECUTION;
+
+    return max(0, ($start + $timeout) - time());
   }
 
   /**
