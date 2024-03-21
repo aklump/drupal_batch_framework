@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap/dist/css/bootstrap.css?ver=0.0.33">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/style.css?ver=0.0.33">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap-icons/font/bootstrap-icons.min.css?ver=0.0.33">
+    <title>Drupal Batch Framework (A Drupal Component) | Book</title>
+</head>
+<body class="my-5">
+
+<header class="header bg-light fixed-top p-2 pt-1">
+  <div class="container-md">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="header__breadcrumbs flex-shrink-0 flex-grow-1 me-3">
+        <nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+      <a class="fw-bold" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/index.html">Book</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a class="fw-bold" href="#" data-bs-toggle="offcanvas"
+         data-bs-target="#table-of-contents"
+         aria-controls="table-of-contents">TOC</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/readme.html">General</a></li>
+  </ol>
+</nav>
+
+      </div>
+      <div class="header__tags me-3">  </div>
+      <div class="header__page-numbers flex-shrink-1">1
+        / 4</div>
+    </div>
+  </div>
+</header>
+
+<main class="container-md flex-column">
+  <div class="row mb-5 pt-5">
+    <article class="col">
+      <h1 class="mb-4 text-primary">Drupal Batch Framework (A Drupal Component)</h1>
+      <ul>
+<li><a href="https://www.drupal.org/docs/core-modules-and-themes/basic-structure-of-drupal#s-drupal-components">What are Drupal Components?</a></li>
+<li>This framework works with and uses a common interface for all Drupal versions.</li>
+<li><a href="https://www.drupal.org/docs/7/api/batch-api">Drupal.org Batch API Docs</a></li>
+</ul>
+<h2>Installation</h2>
+<ol>
+<li><p>Add this <em>composer.json</em>:</p>
+<pre><code class="json"> {
+   "repositories": [
+     {
+       "type": "github",
+       "url": "https://github.com/aklump/drupal_batch_framework"
+     }
+   ]
+ }
+</code></pre>
+</li>
+<li><p><code>composer require aklump/drupal-batch-framework:^0</code></p>
+</li>
+</ol>
+<h2>Usage</h2>
+<p>You will use this framework to create batches of operations. A batch contains
+one or more operations.</p>
+<ol>
+<li>Create a batch class by
+extending <code>\AKlump\Drupal\BatchFramework\DrupalBatchAPIBase</code> or
+implementing <code>\AKlump\Drupal\BatchFramework\BatchDefinitionInterface</code>.</li>
+<li>Create one or more operations by extending <code>\AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase</code> or
+implementing <code>\AKlump\Drupal\BatchFramework\OperationInterface</code>.</li>
+<li>Add the operation(s) to your batch class; see below.</li>
+<li>Create a form to trigger the batch.</li>
+</ol>
+<h2>File Structure</h2>
+<p>Suggested class structure within _my<em>module/</em></p>
+<pre><code class="php">.
+└── src
+    └── Batch
+        ├── BatchDefinitions
+        │   └── FooBatch.php
+        └── Operations
+            ├── BarOperation.php
+            └── BazOperation.php
+        ├── QueueDefinitions
+            └── FooQueue.php
+</code></pre>
+<h2>Batch Definition Example</h2>
+<p>You may or many not need to pass anything to the class, the constructor is
+optional, yet this example shows how it can be done.</p>
+<pre><code class="php">&lt;?php
+
+namespace Drupal\my_module\Batch\BatchDefinitions;
+
+final class FooBatch extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIBase {
+
+  use \AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
+
+  private \Drupal\Core\Session\AccountInterface $account;
+
+  public function __construct(\Drupal\Core\Session\AccountInterface $account) {
+    $this-&gt;account = $account;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getOperations(): array {
+    $operations = [
+      // This operation takes a couple of arguments, unlike the first.  One is
+      // calculated at runtime and the other is a property of the batch.
+      new \AKlump\Drupal\BatchFramework\Operations\BarOperation(date_create('now'), $this-&gt;account),
+      // Another operation to be processed by this batch; it's unlimited.
+      new \AKlump\Drupal\BatchFramework\Operations\BazOperation(),
+    ];
+
+    return $operations;
+  }
+}
+</code></pre>
+<h2>Operation Example</h2>
+<pre><code class="php">&lt;?php
+
+namespace AKlump\Drupal\BatchFramework\Operations;
+
+class BarOperation extends \AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase {
+
+  use \AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait;
+
+  public function __construct(\DateTimeInterface $date, \Drupal\Core\Session\AccountInterface $account) {
+    $this-&gt;date = $date;
+    $this-&gt;account = $account;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function isInitialized(): bool {
+    return isset($this-&gt;sb['items']);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function initialize(): void {
+    $this-&gt;sb['items'] = [10, 20, 30];
+    $this-&gt;sb['total'] = count($this-&gt;sb['items']);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getProgressRatio(): float {
+    return (new \AKlump\Drupal\BatchFramework\Helpers\GetProgressRatio())($this-&gt;sb['total'], $this-&gt;sb['items']);
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function process(): void {
+    $item = array_shift($this-&gt;sb['items']);
+    
+    // TODO Do something with the item.
+    
+    $this-&gt;getLogger()-&gt;info("The item value is @value", ['@value' =&gt; $item]);
+  }
+
+}
+</code></pre>
+<h2>Start the Batch (&lt; Drupal 8)</h2>
+<h3>Using a Form</h3>
+<pre><code class="php">function some_form_submit_handler(array &amp;$form, array $form_state) {
+  // Grab data from the form inputs.
+  $account = $form_state['values']['account'];
+
+  // Identify and configure the batch you want to run.
+  $batch = (new FooBatch($account))
+    -&gt;setTitle(t('Creating Archive File'))
+    -&gt;setInitMessage(t('Getting things rolling...'))
+    -&gt;setProgressMessage(t("Building your archive file; about @estimate until we're done."));
+
+  $on_finish_goto = url(current_path());
+
+  return $batch-&gt;process($on_finish_goto);
+}
+</code></pre>
+<h2>From a Controller</h2>
+<p>@todo</p>
+<h2>Start the Batch (Drupal 8+)</h2>
+<h3>Using a Form</h3>
+<pre><code class="php">function some_form_submit_handler(array &amp;$form, FormStateInterface $form_state) {
+  // Grab data from the form inputs.
+  $account = $form_state-&gt;get('account');
+
+  // Identify and configure the batch you want to run.
+  $batch = new FooBatch($account)
+    -&gt;setTitle($this-&gt;t('Lorem title'))
+    -&gt;setInitMessage($this-&gt;t('Start your engines...'))
+    -&gt;setProgressMessage(t("Building your archive file; about @estimate until we're done."));    
+
+  // Deteremine where the user will be redirected after the batch stops.
+  $on_finish_goto = Url::fromRoute('&lt;front&gt;')-&gt;toString();
+  $response = $batch-&gt;process($on_finish_goto);
+  $form_state-&gt;setResponse($response);
+}
+</code></pre>
+<h2>From a Controller</h2>
+<p><code>Operator::handleOperation</code> is an easy way to leverage your batch operation
+outside of a batch. It allows you to trigger a single operation that will run
+for a set duration. The second two arguments may be omitted if unnecessary.</p>
+<pre><code class="php">class BarController extends ControllerBase {
+
+  public function process(AccountInterface $account) {
+    $max_execution_in_seconds = 60;
+    Operator::handleOperation(
+      new BarOperation(date_create(), $account),
+      $timeout_in_seconds,
+      \Drupal::logger('conversions'),
+      new DrupalMessengerAdapter(),
+    );
+
+    return new RedirectResponse($node-&gt;toUrl()-&gt;toString());
+  }
+}
+</code></pre>
+<h2>How to Handle Errors</h2>
+<h3>Batch Failures</h3>
+<ul>
+<li>All exceptions thrown during a batch will be caught and cause the batch to be marked as failed.</li>
+<li><code>BatchDefinitionInterface::handleFailedBatch</code> is always called after an exception is caught.</li>
+<li>Take appropriate action in <code>BatchDefinitionInterface::handleFailedBatch</code> such as using <code>getMessenger</code> to alert the user.</li>
+<li>See <code>\AKlump\Drupal\BatchFramework\Operator::handleOperation</code> which handles the exception for more info.</li>
+</ul>
+<h3>Other Failures</h3>
+<ul>
+<li>Operations having errors that do not constitute a batch failure should log them using <code>::getLogger</code> and handle the situation.</li>
+</ul>
+<h2>How to Share Data Between Operations</h2>
+<p><code>$this-&gt;shared</code> should be used to shared data. See <code>\AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase::setBatchContext</code> for more info.</p>
+<h3>Operation A</h3>
+<p>Pass a value by setting the value in your first operation.</p>
+<pre><code class="php">public function process(): void {
+  $this-&gt;shared['path'] = '/foo/bar/baz.html'
+}
+</code></pre>
+<h3>Operation B</h3>
+<p>Pull the value into the operation sandbox from the shared array.</p>
+<pre><code class="php">public function initialize(): void {
+  $this-&gt;sb['path'] = $this-&gt;shared['path'];
+}
+</code></pre>
+<h2>You Should Declare Operation Dependencies</h2>
+<p>You can ensure that operation A is run before operation B by implementing <code>\AKlump\Drupal\BatchFramework\OperationInterface::getDependencies</code>. This is generally necessary if you are sharing data across operations.</p>
+<h2>UX Best Practices</h2>
+<p>You should handle a batch failure by providing user feedback in <code>\AKlump\Drupal\BatchFramework\BatchDefinitionInterface::handleFailedBatch</code></p>
+<pre><code class="php">public function handleFailedBatch(array &amp;$batch_data): void {
+  
+  // Delete the incomplete files created in the batch.
+  $service = new FooBarExportService();
+  $service-&gt;deleteExistingExportFiles($this-&gt;account);
+
+  // Tell the user what happened.
+  $m = $this-&gt;getMessenger();
+  $m-&gt;addMessage(t('The process has failed, unfortunately.'), MessengerInterface::TYPE_ERROR);
+  $m-&gt;addMessage(t("We've been notified.  Kindly give us a day or two to work it out."), MessengerInterface::TYPE_STATUS);
+  $m-&gt;addMessage(t('Thank you for your patience.'), MessengerInterface::TYPE_STATUS);
+}
+</code></pre>
+<h2>Batches of Batches</h2>
+<p>Let's say you create a batch of operations that operate on a single user. Call this <code>UserReviewBatch</code>. Then you decide you want to be able to process multiple users along the same lines. Let's call this new batch <code>MultipleUserReviewBatch</code>. The following shows how to leverage this API to do just that.</p>
+<ul>
+<li>Make sure <code>UserReviewBatch</code> properties are protected not private.</li>
+<li><strong>Be careful with <code>$this-&gt;shared</code></strong>.  You will most likely want to empty this array before every new user is processed. That is to say, in the very first operation in <code>UserReviewBatch</code>.  <code>$this-&gt;context</code> is now going to be shared across all operations and so you either need to reset <code>$this-&gt;context['results']['shared']</code> (what <code>$this-&gt;shared</code> references) or key/scope that very carefully. See <code>DrupalBatchAPIOperationBase::setBatchContext</code> for more info.</li>
+<li><p>Do not use <code>\AKlump\Drupal\BatchFramework\Traits\GetLabelByClassnameTrait</code> in <code>UserReviewBatch</code> but instead do this:</p>
+<pre><code class="php"> public function getLabel(): string {
+     return (new CreateLabelByClass())(self::class);
+ }
+</code></pre>
+</li>
+</ul>
+<p>Here is <code>MultipleUserReviewBatch</code>:</p>
+<pre><code class="php">class MultipleUserReviewBatch extends UserReviewBatch {
+
+  /**
+   * @var int[]
+   */
+  private array $uids = [];
+
+  public function __construct(array $uids) {
+    $this-&gt;uids = $uids;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getOperations(): array {
+    $operations = [];
+    $accounts = user_load_multiple($this-&gt;uids);
+    foreach ($accounts as $account) {
+      // Push operations for this account onto the others.
+      $this-&gt;account = $account;
+      $account_operations = parent::getOperations();
+      $operations = array_merge($operations, $account_operations);
+    }
+    return $operations;
+  } 
+
+}
+</code></pre>
+    </article>
+  </div>
+</main>
+
+  <footer class="footer d-flex justify-content-center">
+    <div class="flex-column justify-content-center">
+                  Version:
+          <strong>0.0.33</strong>
+          &bull;
+                Last Update: <strong>3/21/2024</strong>
+    </div>
+  </footer>
+
+
+<nav class="nav d-flex justify-content-center align-items-center
+  fixed-bottom">
+  <div class="btn-group flex-fill">
+              <a href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/readme.html" class="btn nav__prev-chapter btn-secondary"><i class="bi
+      bi-caret-left-fill"></i> Drupal Batch Framework (A Drupal Component)</a>
+  
+    
+              <span class="btn nav__prev-page js-nav__prev-page
+    btn-primary"></span>
+  
+    
+    <a class="nav__toc btn btn-light" href="#"
+       data-bs-toggle="offcanvas"
+       data-bs-target="#table-of-contents"
+       aria-controls="table-of-contents"><i class="bi
+           bi-list-ol"></i></a>
+    
+              <a href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/changelog.html" class="btn nav__next-page js-nav__next-page
+    btn-primary"><i class="bi bi-file-earmark"></i> Changelog <i class="bi
+       bi-caret-right-fill"></i></a>
+  
+    
+              <span class="btn nav__next-chapter btn-secondary "></span>
+  
+  </div>
+</nav>
+
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="table-of-contents"
+     aria-labelledby="table-of-contents__title" data-bs-keyboard="true">
+  <div class="offcanvas-header">
+    <h1 class="h6 offcanvas-title js-chapter-list-title"
+        id="table-of-contents__title">All
+      Chapters
+      &amp; Pages</h1>
+    <h1 class="d-none h6 offcanvas-title js-search-results-title"
+        id="table-of-contents__title">Search Results</h1>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+          <input class="js-search form-control mb-4" type="search"
+             placeholder="Search docs..."
+             aria-label="Search">
+      <div class="js-search-results d-none">
+        <h2 class="h4 mt-4">Matched Pages</h2>
+        <ol class="list-unstyled">
+                                              <li data-page="readme" value="1">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/readme.html">Drupal Batch Framework (A Drupal Component)<span
+              class="js-search-score
+              badge
+              bg-info rounded-pill badge-sm"></span></a>&nbsp;[General]
+    </li>
+  
+                                    <li data-page="changelog" value="2">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/changelog.html">Changelog<span
+              class="js-search-score
+              badge
+              bg-info rounded-pill badge-sm"></span></a>&nbsp;[General]
+    </li>
+  
+                                                          <li data-page="cron_jobs" value="3">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html">Simple Cron Jobs<span
+              class="js-search-score
+              badge
+              bg-info rounded-pill badge-sm"></span></a>&nbsp;[Cron]
+    </li>
+  
+                                    <li data-page="queue_cron_jobs" value="4">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/queue_cron_jobs.html">Working With Cron Queues<span
+              class="js-search-score
+              badge
+              bg-info rounded-pill badge-sm"></span></a>&nbsp;[Cron]
+    </li>
+  
+                              </ol>
+      </div>
+        
+    <div class="js-chapter-list">
+              <h2 class="h4 mt-4">General</h2>
+        <ol>
+                                <li data-page="readme" value="1">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/readme.html">Drupal Batch Framework (A Drupal Component)</a>&nbsp;[General]
+    </li>
+  
+                                <li data-page="changelog" value="2">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/changelog.html">Changelog</a>&nbsp;[General]
+    </li>
+  
+                  </ol>
+              <h2 class="h4 mt-4">Cron</h2>
+        <ol>
+                                <li data-page="cron_jobs" value="3">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html">Simple Cron Jobs</a>&nbsp;[Cron]
+    </li>
+  
+                                <li data-page="queue_cron_jobs" value="4">
+      <a class="js-page-link" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/queue_cron_jobs.html">Working With Cron Queues</a>&nbsp;[Cron]
+    </li>
+  
+                  </ol>
+          </div>
+  </div>
+</div>
+<div class="modal fade" id="modal" tabindex="-1"
+     aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="js-modal-title modal-title" id="modal-title"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mt-1 mb-4">
+                  </p>
+        
+                
+        <ul class="list-group list-group-flush">
+                                    <a class="list-group-item list-group-item-action"
+                 data-tags="[]" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/readme.html">Drupal Batch Framework (A Drupal Component)</a>
+                                                <a class="list-group-item list-group-item-action"
+                 data-tags="[]" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/general/changelog.html">Changelog</a>
+                                                <a class="list-group-item list-group-item-action"
+                 data-tags="[]" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/cron_jobs.html">Simple Cron Jobs</a>
+                                                <a class="list-group-item list-group-item-action"
+                 data-tags="[]" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/pages/cron/queue_cron_jobs.html">Working With Cron Queues</a>
+                              </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap/dist/js/bootstrap.min.js?ver=0.0.33"></script>
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/lunr.js?ver=0.0.33"></script>
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/knowledge.min.js?ver=0.0.33"></script>
+
+</body>
+</html>
