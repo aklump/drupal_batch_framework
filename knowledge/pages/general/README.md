@@ -226,7 +226,24 @@ class BarController extends ControllerBase {
 
 ### Other Failures
 
-* Operations having errors that do not constitute a batch failure should log them using `::getLogger` and handle the situation.
+* Operations having errors that do not constitute a batch failure should log them using `::getLogger` and handle the situation.  Here is an example of logging an exception during a process run.
+
+```php
+class FooOperation {
+  public function process(): void {
+    try {
+      $uid = array_shift($this->sb['items']);
+      $account = user_load($uid);
+      // Do something to throw an exception
+    }
+    catch (\Exception $exception) {
+      $this->getLogger()->error(sprintf('Failed user %d', $account->uid));
+      $this->getLogger()
+        ->error($exception->getMessage() . PHP_EOL . $exception->getTraceAsString());
+    }
+  }
+}
+```
 
 ## How to Share Data Between Operations
 
