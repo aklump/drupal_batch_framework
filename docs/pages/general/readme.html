@@ -4,9 +4,9 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap/dist/css/bootstrap.css?ver=0.0.34">
-      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/style.css?ver=0.0.34">
-      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap-icons/font/bootstrap-icons.min.css?ver=0.0.34">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap/dist/css/bootstrap.css?ver=0.0.35">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/style.css?ver=0.0.35">
+      <link rel="stylesheet" href="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap-icons/font/bootstrap-icons.min.css?ver=0.0.35">
     <title>Drupal Batch Framework (A Drupal Component) | Book</title>
 </head>
 <body class="my-5">
@@ -236,8 +236,23 @@ for a set duration. The second two arguments may be omitted if unnecessary.</p>
 </ul>
 <h3>Other Failures</h3>
 <ul>
-<li>Operations having errors that do not constitute a batch failure should log them using <code>::getLogger</code> and handle the situation.</li>
+<li>Operations having errors that do not constitute a batch failure should log them using <code>::getLogger</code> and handle the situation.  Here is an example of logging an exception during a process run.</li>
 </ul>
+<pre><code class="php">class FooOperation {
+  public function process(): void {
+    try {
+      $uid = array_shift($this-&gt;sb['items']);
+      $account = user_load($uid);
+      // Do something to throw an exception
+    }
+    catch (\Exception $exception) {
+      $this-&gt;getLogger()-&gt;error(sprintf('Failed user %d', $account-&gt;uid));
+      $this-&gt;getLogger()
+        -&gt;error($exception-&gt;getMessage() . PHP_EOL . $exception-&gt;getTraceAsString());
+    }
+  }
+}
+</code></pre>
 <h2>How to Share Data Between Operations</h2>
 <p><code>$this-&gt;shared</code> should be used to shared data. See <code>\AKlump\Drupal\BatchFramework\DrupalBatchAPIOperationBase::setBatchContext</code> for more info.</p>
 <h3>Operation A</h3>
@@ -317,9 +332,9 @@ for a set duration. The second two arguments may be omitted if unnecessary.</p>
   <footer class="footer d-flex justify-content-center">
     <div class="flex-column justify-content-center">
                   Version:
-          <strong>0.0.34</strong>
+          <strong>0.0.35</strong>
           &bull;
-                Last Update: <strong>3/21/2024</strong>
+                Last Update: <strong>3/22/2024</strong>
     </div>
   </footer>
 
@@ -455,9 +470,9 @@ for a set duration. The second two arguments may be omitted if unnecessary.</p>
   </div>
 </div>
 
-  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap/dist/js/bootstrap.min.js?ver=0.0.34"></script>
-  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/lunr.js?ver=0.0.34"></script>
-  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/knowledge.min.js?ver=0.0.34"></script>
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/node_modules/bootstrap/dist/js/bootstrap.min.js?ver=0.0.35"></script>
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/lunr.js?ver=0.0.35"></script>
+  <script src="/Users/aklump/Code/Packages/drupal/drupal-batch-framework/docs/dist/knowledge.min.js?ver=0.0.35"></script>
 
 </body>
 </html>
